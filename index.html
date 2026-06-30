@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stitch — Cross Stitch Pattern Maker</title>
+<style>
+/* ── Design tokens ─────────────────────────────────── */
+:root {
+  --rose:     #D4607A;
+  --rose-l:   #E8748A;
+  --rose-pale:#FDF0F3;
+  --rose-2:   #F5DCE3;
+  --mauve:    #B5506A;
+  --sage:     #7A9E87;
+  --sage-l:   #A8C4B0;
+  --cream:    #FEFCFA;
+  --blush:    #FBF4F6;
+  --ink:      #2D1F25;
+  --ink-2:    #7A5C65;
+  --ink-3:    #B8929C;
+  --border:   rgba(180,100,120,0.13);
+  --border-s: rgba(180,100,120,0.22);
+  --shadow:   0 1px 4px rgba(180,80,100,0.08),0 1px 2px rgba(180,80,100,0.05);
+  --shadow-lg:0 4px 20px rgba(180,80,100,0.13),0 2px 8px rgba(180,80,100,0.07);
+  --r:        8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:system-ui,-apple-system,sans-serif;
+  background:var(--blush);
+  color:var(--ink);
+  font-size:13px;
+  line-height:1.5;
+}
+
+/* ── Topbar ────────────────────────────────────────── */
+.topbar{
+  display:flex;align-items:center;gap:10px;
+  height:54px;padding:0 18px;
+  background:var(--cream);
+  border-bottom:0.5px solid var(--border-s);
+  position:relative;z-index:10;flex-shrink:0;
+}
+.logo{
+  display:flex;align-items:center;gap:9px;
+  margin-right:2px;flex-shrink:0;
+}
+.logo-hoop{
+  width:30px;height:30px;position:relative;flex-shrink:0;
+}
+.logo-hoop svg{width:100%;height:100%}
+.logo-name{
+  font-family:Georgia,'Times New Roman',serif;
+  font-style:italic;
+  font-size:17px;
+  color:var(--rose);
+  letter-spacing:0.01em;
+  white-space:nowrap;
+}
+.logo-sub{
+  font-size:10px;color:var(--ink-3);
+  letter-spacing:0.03em;
+  white-space:nowrap;
+  margin-top:-1px;
+}
+.tsep{width:0.5px;height:22px;background:var(--border-s);flex-shrink:0}
+
+/* Upload */
+.upload-btn{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 14px;
+  background:var(--rose);color:#fff;
+  border:none;border-radius:var(--r);
+  font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;
+  transition:background .15s;white-space:nowrap;flex-shrink:0;
+}
+.upload-btn:hover{background:var(--mauve)}
+.upload-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+
+/* Image pill */
+.img-pill{
+  display:none;align-items:center;gap:6px;
+  padding:4px 10px 4px 7px;
+  background:var(--rose-pale);
+  border:0.5px solid var(--border-s);
+  border-radius:20px;font-size:11px;color:var(--ink-2);
+  white-space:nowrap;
+}
+.img-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--sage);flex-shrink:0}
+.warn-pill{
+  display:none;align-items:center;gap:5px;
+  background:#fff8ed;border:0.5px solid #fcd9a0;
+  border-radius:5px;padding:4px 9px;font-size:10px;color:#92600e;
+  white-space:nowrap;
+}
+.warn-pill.show{display:flex}
+.img-pill.show{display:flex}
+
+/* Width slider */
+.size-ctrl{display:flex;align-items:center;gap:9px;flex:1;max-width:380px}
+.size-ctrl label{font-size:11px;color:var(--ink-3);white-space:nowrap}
+.size-ctrl input[type=range]{flex:1;accent-color:var(--rose);cursor:pointer}
+.stitch-info{
+  font-size:11px;font-weight:500;color:var(--ink);
+  white-space:nowrap;min-width:160px;
+  display:flex;flex-direction:column;gap:1px;
+}
+.stitch-info .sub{font-size:10px;color:var(--ink-3);font-weight:400}
+
+/* Pages badge */
+.pages-badge{
+  display:none;
+  font-size:10px;color:var(--rose);
+  background:var(--rose-pale);
+  border:0.5px solid var(--border-s);
+  border-radius:10px;padding:2px 8px;white-space:nowrap;flex-shrink:0;
+}
+.pages-badge.show{display:block}
+
+/* Buttons */
+.preview-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 13px;
+  background:var(--blush);
+  border:0.5px solid var(--border-s);
+  border-radius:var(--r);
+  font-size:12px;font-weight:500;color:var(--ink-2);
+  cursor:pointer;font-family:inherit;transition:all .15s;flex-shrink:0;
+}
+.preview-btn:hover{background:var(--rose-2);border-color:var(--rose);color:var(--rose)}
+.preview-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
+.preview-btn.active{background:var(--rose-pale);border-color:var(--rose-l);color:var(--rose)}
+
+.gen-btn{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 18px;
+  background:linear-gradient(135deg,var(--rose) 0%,var(--mauve) 100%);
+  color:#fff;border:none;border-radius:var(--r);
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:opacity .15s;white-space:nowrap;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(180,80,100,0.25);
+}
+.gen-btn:hover:not(:disabled){opacity:.9}
+.gen-btn:disabled{opacity:.55;cursor:not-allowed}
+.gen-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;flex-shrink:0}
+
+.print-btn{
+  display:none;align-items:center;gap:6px;
+  padding:6px 12px;
+  background:transparent;border:0.5px solid var(--border-s);
+  border-radius:var(--r);font-size:11px;font-weight:500;color:var(--ink-2);
+  cursor:pointer;font-family:inherit;transition:all .15s;flex-shrink:0;
+}
+.print-btn.show{display:flex}
+.print-btn:hover{background:var(--rose-pale);border-color:var(--rose);color:var(--rose)}
+.print-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+.settings-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;
+  background:transparent;border:0.5px solid var(--border-s);
+  border-radius:var(--r);font-size:11px;font-weight:500;color:var(--ink-2);
+  cursor:pointer;font-family:inherit;transition:all .15s;flex-shrink:0;
+}
+.settings-btn:hover{background:var(--rose-pale)}
+.settings-btn.active{background:var(--rose-pale);border-color:var(--rose-l);color:var(--rose)}
+.settings-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;flex-shrink:0}
+
+/* ── Layout ─────────────────────────────────────────── */
+.layout{display:flex;height:calc(100vh - 54px);overflow:hidden}
+
+/* ── Canvas area ─────────────────────────────────────── */
+.canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+/* Progress */
+.prog{height:2px;background:var(--rose-2);flex-shrink:0;display:none;position:relative}
+.prog.show{display:block}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--rose-l),var(--rose));border-radius:0 1px 1px 0;transition:width .12s}
+.prog-label{position:absolute;top:5px;left:18px;font-size:10px;color:var(--ink-3)}
+
+/* Quality badge on canvas */
+.quality-badge{
+  position:absolute;top:12px;right:12px;z-index:5;
+  display:none;
+  padding:4px 10px;border-radius:20px;font-size:10px;font-weight:500;
+  backdrop-filter:blur(4px);
+}
+.quality-badge.preview-mode{
+  display:block;
+  background:rgba(255,240,245,0.92);
+  border:0.5px solid var(--border-s);
+  color:var(--rose);
+}
+.quality-badge.full-mode{
+  display:block;
+  background:rgba(240,255,245,0.92);
+  border:0.5px solid rgba(100,180,130,0.3);
+  color:var(--sage);
+}
+
+.canvas-scroll{
+  flex:1;overflow:auto;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:28px;background:var(--blush);
+  position:relative;
+}
+.canvas-inner{position:relative;display:inline-block}
+canvas#patternCanvas{
+  display:block;image-rendering:pixelated;
+  box-shadow:var(--shadow-lg);border-radius:3px;
+}
+
+/* Empty state with animated hoop */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;padding:48px 24px;text-align:center;
+}
+.hoop-wrap{
+  position:relative;width:160px;height:160px;margin-bottom:28px;
+}
+.hoop-wrap svg{position:absolute;inset:0;width:100%;height:100%}
+.empty-title{
+  font-family:Georgia,'Times New Roman',serif;font-style:italic;
+  font-size:22px;color:var(--rose);margin-bottom:8px;letter-spacing:-0.01em;
+}
+.empty-sub{font-size:13px;color:var(--ink-3);max-width:260px;line-height:1.7;margin-bottom:22px}
+.empty-cta{
+  padding:9px 22px;background:var(--rose);color:#fff;
+  border:none;border-radius:var(--r);font-size:13px;font-weight:500;
+  cursor:pointer;font-family:inherit;transition:background .15s;
+  box-shadow:0 2px 8px rgba(180,80,100,0.22);
+}
+.empty-cta:hover{background:var(--mauve)}
+.empty-hint{font-size:10px;color:var(--ink-3);margin-top:10px}
+
+/* Stats strip */
+.stats-strip{
+  border-top:0.5px solid var(--border);
+  background:var(--cream);flex-shrink:0;
+  display:none;
+}
+.stats-strip.show{display:flex}
+.stat-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:7px 10px;border-right:0.5px solid var(--border);
+}
+.stat-item:last-child{border-right:none}
+.stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-3);font-weight:500}
+.stat-val{font-size:14px;font-weight:600;color:var(--ink);margin-top:1px}
+.stat-val .u{font-size:10px;font-weight:400;color:var(--ink-3)}
+.cb{display:inline-flex;align-items:center;font-size:9px;padding:1px 5px;border-radius:10px;font-weight:500;margin-left:3px;vertical-align:middle}
+.cbg{background:#dcfce7;color:#166534}
+.cby{background:#fef9c3;color:#854d0e}
+.cbr{background:#fee2e2;color:#991b1b}
+
+/* ── Settings drawer ──────────────────────────────────── */
+.drawer{
+  width:0;overflow:hidden;transition:width .22s ease;
+  background:var(--cream);border-left:0.5px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;
+}
+.drawer.open{width:258px}
+.drawer-body{
+  flex:1;overflow-y:auto;padding:18px 16px;
+  display:flex;flex-direction:column;gap:18px;
+}
+.dsec{display:flex;flex-direction:column;gap:9px}
+.dtitle{
+  font-size:9px;font-weight:600;text-transform:uppercase;
+  letter-spacing:0.09em;color:var(--rose);
+  padding-bottom:6px;border-bottom:0.5px solid var(--rose-2);
+}
+/* Aida pills */
+.aida-row{display:flex;gap:4px;flex-wrap:wrap}
+.ap{
+  padding:3px 8px;border-radius:20px;
+  border:0.5px solid var(--border-s);
+  background:var(--blush);font-size:11px;cursor:pointer;
+  color:var(--ink-2);transition:all .1s;font-family:inherit;
+}
+.ap:hover{border-color:var(--rose-l);color:var(--rose)}
+.ap.on{background:var(--rose);color:#fff;border-color:var(--rose)}
+.aida-note{font-size:10px;color:var(--ink-3);line-height:1.4;
+  background:var(--rose-pale);border-radius:5px;padding:5px 7px;
+}
+.aida-note b{color:var(--ink-2);font-weight:500}
+/* Sliders */
+.sg{display:flex;flex-direction:column;gap:9px}
+.si{display:flex;flex-direction:column;gap:3px}
+.sl-lbl{font-size:11px;color:var(--ink-2);display:flex;justify-content:space-between}
+.sl-lbl .hint{font-size:10px;color:var(--ink-3)}
+.sl-row{display:flex;align-items:center;gap:8px}
+.sl-row input[type=range]{flex:1;accent-color:var(--rose);cursor:pointer}
+.sl-val{font-size:11px;font-weight:500;min-width:28px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+/* Palette */
+.pal{display:flex;flex-wrap:wrap;gap:4px}
+.sw{
+  width:22px;height:22px;border-radius:4px;cursor:pointer;
+  border:2px solid transparent;flex-shrink:0;transition:transform .1s;
+}
+.sw:hover{transform:scale(1.15)}
+/* Swap panel */
+.swap-panel{
+  background:var(--blush);border:0.5px solid var(--border-s);
+  border-radius:var(--r);padding:10px;display:none;
+}
+.swap-panel.open{display:block}
+.swap-lbl{font-size:11px;color:var(--ink-2);margin-bottom:7px}
+.dmc-search{
+  width:100%;padding:5px 8px;
+  border:0.5px solid var(--border-s);border-radius:5px;
+  background:var(--cream);font-size:11px;font-family:inherit;color:var(--ink);
+  margin-bottom:6px;
+}
+.dmc-search:focus{outline:none;border-color:var(--rose-l)}
+.dmc-grid{display:flex;flex-wrap:wrap;gap:3px;max-height:80px;overflow-y:auto}
+.dd{
+  width:20px;height:20px;border-radius:3px;cursor:pointer;
+  border:1.5px solid transparent;flex-shrink:0;transition:transform .1s;
+}
+.dd:hover{transform:scale(1.2);border-color:var(--ink)}
+.swap-cancel{
+  margin-top:6px;font-size:10px;color:var(--rose);
+  cursor:pointer;text-align:right;text-decoration:underline;
+}
+/* Thread list */
+.tlist{display:flex;flex-direction:column;gap:1px}
+.trow{
+  display:flex;align-items:center;gap:7px;
+  padding:5px 0;border-bottom:0.5px solid var(--border);
+}
+.trow:last-child{border:none}
+.tdot{width:16px;height:16px;border-radius:3px;flex-shrink:0;border:0.5px solid rgba(0,0,0,0.1)}
+.tsym{width:16px;text-align:center;font-size:11px;font-weight:600;flex-shrink:0;color:var(--ink)}
+.tinfo{flex:1;min-width:0}
+.tname{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcode{font-size:9px;color:var(--ink-3)}
+.tright{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.tcount{font-size:10px;color:var(--ink-3);white-space:nowrap}
+.tlink{
+  font-size:9px;color:var(--rose);text-decoration:none;
+  border:0.5px solid var(--rose);border-radius:3px;padding:1px 5px;white-space:nowrap;
+}
+.tlink:hover{background:var(--rose);color:#fff}
+/* Drawer divider */
+.ddiv{height:0.5px;background:var(--rose-2)}
+
+/* Drop overlay */
+.drop-overlay{
+  position:fixed;inset:0;
+  background:rgba(212,96,122,0.1);
+  border:3px dashed var(--rose-l);
+  z-index:100;display:none;
+  align-items:center;justify-content:center;
+  font-size:16px;font-weight:500;color:var(--rose);
+  pointer-events:none;letter-spacing:0.03em;font-family:Georgia,serif;font-style:italic;
+}
+.drop-overlay.show{display:flex}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--rose-2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
+</style>
+</head>
+<body>
+
+<div class="drop-overlay" id="dropOverlay">✦ Drop your image here ✦</div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <!-- Logo -->
+  <div class="logo">
+    <div class="logo-hoop">
+      <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="15" cy="15" r="13" stroke="#D4607A" stroke-width="1.5" fill="none"/>
+        <circle cx="15" cy="15" r="10" stroke="#E8748A" stroke-width="0.8" stroke-dasharray="2 2" fill="none"/>
+        <rect x="13.5" y="1" width="3" height="5" rx="1" fill="#D4607A"/>
+        <!-- Mini cross stitches -->
+        <line x1="11" y1="11" x2="14" y2="14" stroke="#D4607A" stroke-width="1" stroke-linecap="round"/>
+        <line x1="14" y1="11" x2="11" y2="14" stroke="#D4607A" stroke-width="1" stroke-linecap="round"/>
+        <line x1="16" y1="11" x2="19" y2="14" stroke="#7A9E87" stroke-width="1" stroke-linecap="round"/>
+        <line x1="19" y1="11" x2="16" y2="14" stroke="#7A9E87" stroke-width="1" stroke-linecap="round"/>
+        <line x1="11" y1="16" x2="14" y2="19" stroke="#7A9E87" stroke-width="1" stroke-linecap="round"/>
+        <line x1="14" y1="16" x2="11" y2="19" stroke="#7A9E87" stroke-width="1" stroke-linecap="round"/>
+        <line x1="16" y1="16" x2="19" y2="19" stroke="#D4607A" stroke-width="1" stroke-linecap="round"/>
+        <line x1="19" y1="16" x2="16" y2="19" stroke="#D4607A" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-name">Stitch</div>
+      <div class="logo-sub">pattern maker</div>
+    </div>
+  </div>
+
+  <div class="tsep"></div>
+
+  <button class="upload-btn" onclick="document.getElementById('fi').click()">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+    Upload photo
+  </button>
+  <input type="file" id="fi" accept="image/*,.heic,.heif" style="display:none">
+
+  <div class="img-pill" id="imgPill">
+    <span class="dot"></span>
+    <span id="imgPillText"></span>
+  </div>
+  <div class="warn-pill" id="warnPill"><span>⚠</span><span id="warnText"></span></div>
+
+  <div class="tsep"></div>
+
+  <div class="size-ctrl">
+    <label>Width</label>
+    <input type="range" id="widthSlider" min="40" max="450" value="200" step="1">
+    <div class="stitch-info">
+      <span id="stitchMain">200 × 200 stitches</span>
+      <span class="sub" id="stitchSub">14.3″ × 14.3″ on 14-ct</span>
+    </div>
+  </div>
+
+  <div class="pages-badge" id="pagesBadge">Multi-page PDF</div>
+
+  <div class="tsep"></div>
+
+  <!-- Live preview toggle -->
+  <button class="preview-btn" id="previewBtn" onclick="toggleLivePreview()">
+    <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Live preview
+  </button>
+
+  <!-- Full-quality generate -->
+  <button class="gen-btn" id="genBtn" onclick="generate()">
+    <svg viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Full quality
+  </button>
+
+  <button class="print-btn" id="printBtn" onclick="printPDF()">
+    <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Print PDF
+  </button>
+
+  <button class="settings-btn" id="settingsBtn" onclick="toggleSettings()">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Settings
+  </button>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Canvas area -->
+  <div class="canvas-area">
+    <div class="prog" id="prog"><div class="prog-fill" id="progFill" style="width:0%"></div><div class="prog-label" id="progLabel"></div></div>
+
+    <div class="canvas-scroll" id="canvasScroll">
+      <!-- Quality badge overlay -->
+      <div class="quality-badge" id="qualityBadge"></div>
+
+      <!-- Empty state -->
+      <div class="empty-state" id="emptyState">
+        <div class="hoop-wrap">
+          <svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Outer hoop ring -->
+            <circle cx="80" cy="80" r="72" stroke="#E8748A" stroke-width="6" fill="#FDF5F7"/>
+            <circle cx="80" cy="80" r="66" stroke="#F5DCE3" stroke-width="2" fill="none"/>
+            <!-- Hoop screw/clasp at top -->
+            <rect x="71" y="3" width="18" height="12" rx="4" fill="#D4607A"/>
+            <rect x="75" y="3" width="10" height="8" rx="2" fill="#E8748A"/>
+            <!-- Linen texture grid (subtle) -->
+            <g opacity="0.12" stroke="#D4607A" stroke-width="0.5">
+              <line x1="20" y1="50" x2="140" y2="50"/><line x1="20" y1="65" x2="140" y2="65"/>
+              <line x1="20" y1="80" x2="140" y2="80"/><line x1="20" y1="95" x2="140" y2="95"/>
+              <line x1="20" y1="110" x2="140" y2="110"/>
+              <line x1="50" y1="20" x2="50" y2="140"/><line x1="65" y1="20" x2="65" y2="140"/>
+              <line x1="80" y1="20" x2="80" y2="140"/><line x1="95" y1="20" x2="95" y2="140"/>
+              <line x1="110" y1="20" x2="110" y2="140"/>
+            </g>
+            <!-- Animated cross stitches -->
+            <!-- Stitch 1 -->
+            <g class="stitch-anim" style="animation:stitchIn .4s ease-out .2s both">
+              <line x1="52" y1="52" x2="62" y2="62" stroke="#D4607A" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="62" y1="52" x2="52" y2="62" stroke="#D4607A" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            <!-- Stitch 2 -->
+            <g class="stitch-anim" style="animation:stitchIn .4s ease-out .5s both">
+              <line x1="67" y1="52" x2="77" y2="62" stroke="#7A9E87" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="77" y1="52" x2="67" y2="62" stroke="#7A9E87" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            <!-- Stitch 3 -->
+            <g class="stitch-anim" style="animation:stitchIn .4s ease-out .8s both">
+              <line x1="82" y1="52" x2="92" y2="62" stroke="#D4607A" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="92" y1="52" x2="82" y2="62" stroke="#D4607A" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            <!-- Stitch 4 -->
+            <g class="stitch-anim" style="animation:stitchIn .4s ease-out 1.1s both">
+              <line x1="52" y1="67" x2="62" y2="77" stroke="#7A9E87" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="62" y1="67" x2="52" y2="77" stroke="#7A9E87" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            <!-- Stitch 5 -->
+            <g class="stitch-anim" style="animation:stitchIn .4s ease-out 1.4s both">
+              <line x1="67" y1="67" x2="77" y2="77" stroke="#E8748A" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="77" y1="67" x2="67" y2="77" stroke="#E8748A" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            <!-- Stitch 6 -->
+            <g class="stitch-anim" style="animation:stitchIn .4s ease-out 1.7s both">
+              <line x1="82" y1="67" x2="92" y2="77" stroke="#D4607A" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="92" y1="67" x2="82" y2="77" stroke="#D4607A" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            <!-- Stitch 7 -->
+            <g class="stitch-anim" style="animation:stitchIn .4s ease-out 2.0s both">
+              <line x1="52" y1="82" x2="62" y2="92" stroke="#D4607A" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="62" y1="82" x2="52" y2="92" stroke="#D4607A" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            <!-- Stitch 8 -->
+            <g class="stitch-anim" style="animation:stitchIn .4s ease-out 2.3s both">
+              <line x1="67" y1="82" x2="77" y2="92" stroke="#7A9E87" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="77" y1="82" x2="67" y2="92" stroke="#7A9E87" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            <!-- Needle being "stitched" -->
+            <g style="animation:needleMove 2.6s ease-in-out 2.6s infinite">
+              <line x1="95" y1="82" x2="105" y2="92" stroke="#7A9E87" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="105" y1="82" x2="95" y2="92" stroke="#7A9E87" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- Needle -->
+              <line x1="108" y1="79" x2="118" y2="69" stroke="#C4748A" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="118" cy="69" r="2" fill="none" stroke="#C4748A" stroke-width="1.2"/>
+            </g>
+          </svg>
+        </div>
+        <div class="empty-title">Upload a photo to begin</div>
+        <div class="empty-sub">Turn any photo into a printable cross stitch pattern with DMC thread colors and a shopping list.</div>
+        <button class="empty-cta" onclick="document.getElementById('fi').click()">Choose a photo</button>
+        <div class="empty-hint">or drag and drop anywhere · JPG, PNG, WebP</div>
+      </div>
+
+      <!-- Pattern canvas -->
+      <div class="canvas-inner" id="canvasInner" style="display:none">
+        <canvas id="patternCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="stats-strip" id="statsStrip">
+      <div class="stat-item"><div class="stat-lbl">Stitches</div><div class="stat-val" id="stStitches">—</div></div>
+      <div class="stat-item"><div class="stat-lbl">Colors</div><div class="stat-val" id="stColors">—</div></div>
+      <div class="stat-item"><div class="stat-lbl">Fabric size</div><div class="stat-val" id="stSize">—</div></div>
+      <div class="stat-item"><div class="stat-lbl">Print pages</div><div class="stat-val" id="stPages">—</div></div>
+    </div>
+  </div>
+
+  <!-- Settings drawer -->
+  <div class="drawer" id="drawer">
+    <div class="drawer-body">
+      <div class="dsec">
+        <div class="dtitle">Fabric count</div>
+        <div class="aida-row">
+          <button class="ap" data-ct="11" onclick="setAida(11)">11-ct</button>
+          <button class="ap on" data-ct="14" onclick="setAida(14)">14-ct</button>
+          <button class="ap" data-ct="16" onclick="setAida(16)">16-ct</button>
+          <button class="ap" data-ct="18" onclick="setAida(18)">18-ct</button>
+          <button class="ap" data-ct="22" onclick="setAida(22)">22-ct</button>
+          <button class="ap" data-ct="28" onclick="setAida(28)">28-ct</button>
+        </div>
+        <div class="aida-note" id="aidaNote"><b>14-ct Aida</b> — most common, great for beginners. Changes fabric/print size only, not pattern detail.</div>
+      </div>
+
+      <div class="ddiv"></div>
+
+      <div class="dsec">
+        <div class="dtitle">Adjustments</div>
+        <div class="sg">
+          <div class="si">
+            <div class="sl-lbl">Colors <span class="hint">2–30, sweet spot 15–25</span></div>
+            <div class="sl-row"><input type="range" id="slC" min="2" max="30" value="20" step="1"><span class="sl-val" id="vC">20</span></div>
+          </div>
+          <div class="si">
+            <div class="sl-lbl">Contrast</div>
+            <div class="sl-row"><input type="range" id="slCo" min="-50" max="100" value="20" step="1"><span class="sl-val" id="vCo">+20</span></div>
+          </div>
+          <div class="si">
+            <div class="sl-lbl">Brightness</div>
+            <div class="sl-row"><input type="range" id="slBr" min="-80" max="80" value="0" step="1"><span class="sl-val" id="vBr">0</span></div>
+          </div>
+          <div class="si">
+            <div class="sl-lbl">Saturation</div>
+            <div class="sl-row"><input type="range" id="slSa" min="-100" max="100" value="15" step="1"><span class="sl-val" id="vSa">+15</span></div>
+          </div>
+          <div class="si">
+            <div class="sl-lbl">Smoothing <span class="hint">reduces noise</span></div>
+            <div class="sl-row"><input type="range" id="slSm" min="0" max="10" value="3" step="1"><span class="sl-val" id="vSm">3</span></div>
+          </div>
+          <div class="si">
+            <div class="sl-lbl">Dithering <span class="hint">blends gradients</span></div>
+            <div class="sl-row"><input type="range" id="slDi" min="0" max="10" value="4" step="1"><span class="sl-val" id="vDi">4</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ddiv"></div>
+
+      <div class="dsec" id="palSec" style="display:none">
+        <div class="dtitle">Swap thread colors</div>
+        <div class="pal" id="colorPal"></div>
+        <div class="swap-panel" id="swapPanel">
+          <div class="swap-lbl" id="swapLbl">Pick a replacement:</div>
+          <input class="dmc-search" id="dmcSearch" placeholder="Search DMC number or name…">
+          <div class="dmc-grid" id="dmcGrid"></div>
+          <div class="swap-cancel" onclick="closeSwap()">Cancel</div>
+        </div>
+      </div>
+
+      <div class="ddiv" id="threadDiv" style="display:none"></div>
+
+      <div class="dsec" id="threadSec" style="display:none">
+        <div class="dtitle">Shopping list — Michaels Canada</div>
+        <div class="tlist" id="threadList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes stitchIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+@keyframes needleMove{0%,100%{transform:translate(0,0)}50%{transform:translate(15px,15px)}}
+</style>
+
+<script>
+// ═══ DMC LIBRARY ════════════════════════════════════════════════════════════
+const D=[['blanc','White','#FFFFFF'],['ecru','Ecru','#F0EAD6'],['150','Ultra Dk Dusty Rose','#AB2346'],['151','Vry Lt Dusty Rose','#F0CBCC'],['152','Med Lt Shell Pink','#E8A89C'],['153','Vry Lt Violet','#D9B8D0'],['154','V Dk Grape','#572A3B'],['155','Med Dk Blue Violet','#7B779C'],['156','Med Lt Blue Violet','#9BA8C6'],['157','Vry Lt Cornflower Blue','#B4BDD5'],['158','Med V Dk Cornflower','#4F587A'],['159','Lt Gray Blue','#C1C9D5'],['160','Med Gray Blue','#9AA3B5'],['161','Gray Blue','#757E96'],['162','Ultra Lt Blue','#D4E8F3'],['163','Med Sage Green','#5E8763'],['164','Lt Forest Green','#A5C49E'],['165','Vry Lt Moss Green','#EEF6C0'],['166','Med Lt Moss Green','#BFD158'],['167','Vry Dk Yellow Beige','#A07D50'],['168','Vry Lt Pewter','#C8C9C9'],['169','Lt Pewter','#9E9EA0'],['208','Vry Dk Lavender','#7B5286'],['209','Dk Lavender','#9B73A6'],['210','Med Lavender','#C0A0C8'],['211','Lt Lavender','#DBC8E1'],['221','Vry Dk Shell Pink','#9B4348'],['223','Lt Shell Pink','#CC8882'],['224','Vry Lt Shell Pink','#E4B3AA'],['225','Ultra Vry Lt Shell Pk','#F5DDD7'],['300','Vry Dk Mahogany','#6B230A'],['301','Med Mahogany','#B05726'],['304','Med Christmas Red','#BE1F2A'],['307','Lemon','#FFF066'],['309','Dk Rose','#C02E50'],['310','Black','#000000'],['311','Med Navy Blue','#1A3961'],['312','Lt Navy Blue','#2B5278'],['315','Med Dk Antique Mauve','#7F4756'],['316','Med Antique Mauve','#B07680'],['317','Pewter Gray','#6E6F74'],['318','Lt Steel Gray','#9EA2A5'],['319','Vry Dk Pistachio Grn','#2D5B34'],['320','Med Pistachio Green','#5E8F64'],['321','Christmas Red','#CE2028'],['322','Dk Baby Blue','#4C85B5'],['326','Vry Dk Rose','#AD2C42'],['327','Dk Violet','#5A3075'],['333','Vry Dk Blue Violet','#4B4D86'],['334','Med Baby Blue','#6AA0CA'],['335','Rose','#E0405B'],['336','Navy Blue','#183567'],['340','Med Blue Violet','#8486B5'],['341','Lt Blue Violet','#A8AACC'],['347','Vry Dk Salmon','#C32930'],['349','Dk Coral','#D12A27'],['350','Med Coral','#DF5350'],['351','Coral','#E87370'],['352','Lt Coral','#F5A09B'],['353','Peach','#FCCBBF'],['355','Dk Terra Cotta','#9B3D2B'],['356','Med Terra Cotta','#C56A52'],['367','Dk Pistachio Green','#4B7D52'],['368','Lt Pistachio Green','#96C89A'],['369','Vry Lt Pistachio Grn','#CBE8CB'],['370','Med Mustard','#A88030'],['371','Mustard','#B89040'],['372','Lt Mustard','#C8A050'],['400','Dk Mahogany','#8C3218'],['402','Vry Lt Mahogany','#F5B89A'],['407','Dk Desert Sand','#C09070'],['413','Dk Pewter Gray','#565759'],['414','Dk Steel Gray','#7E8083'],['415','Pearl Gray','#C8CACC'],['420','Dk Hazel Nut Brown','#886030'],['422','Lt Hazel Nut Brown','#C49A60'],['433','Med Brown','#7B4420'],['434','Lt Brown','#9B6030'],['435','Vry Lt Brown','#B87840'],['436','Tan','#CC9850'],['437','Lt Tan','#D8B478'],['444','Dk Lemon','#F8C800'],['445','Lt Lemon','#FFFCB0'],['451','Dk Shell Gray','#968888'],['452','Med Shell Gray','#BEB0B0'],['453','Lt Shell Gray','#D8CCCC'],['469','Avocado Green','#708240'],['470','Lt Avocado Green','#8AA048'],['471','Vry Lt Avocado Grn','#B0C060'],['472','Ultra Lt Avocado Grn','#D0DC98'],['498','Dk Christmas Red','#980018'],['500','Vry Dk Blue Green','#1D4830'],['501','Dk Blue Green','#2E6044'],['502','Blue Green','#4A7A5A'],['503','Med Blue Green','#6D9C82'],['504','Vry Lt Blue Green','#AECDB8'],['517','Dk Wedgwood','#3870A0'],['518','Lt Wedgwood','#5898C8'],['519','Sky Blue','#90C0D8'],['520','Dk Fern Green','#506838'],['522','Fern Green','#7A9460'],['523','Lt Fern Green','#9AAC78'],['524','Vry Lt Fern Green','#BCC898'],['535','Vry Lt Ash Gray','#636569'],['543','Ultra Vry Lt Beige Br','#E8D8C0'],['550','Vry Dk Violet','#4A1060'],['552','Med Violet','#7A4090'],['553','Violet','#9A60A8'],['554','Lt Violet','#C898C8'],['561','Vry Dk Jade','#2E6048'],['562','Med Jade','#488C68'],['563','Lt Jade','#78B898'],['564','Vry Lt Jade','#A8D4C0'],['580','Dk Moss Green','#6C7820'],['581','Moss Green','#8C9828'],['597','Turquoise','#4AB0C0'],['598','Lt Turquoise','#90D0D8'],['600','Vry Dk Cranberry','#C22060'],['601','Dk Cranberry','#CC3070'],['602','Med Cranberry','#E04880'],['603','Cranberry','#F060A0'],['604','Lt Cranberry','#F890BC'],['605','Vry Lt Cranberry','#FAB8D0'],['606','Brt Orange-Red','#EB3214'],['608','Brt Orange','#F25018'],['610','Dk Drab Brown','#7A6030'],['611','Drab Brown','#9A7A40'],['612','Lt Drab Brown','#C0A060'],['613','Vry Lt Drab Brown','#D8C090'],['632','Ultra Vry Dk Desert Sd','#9A6848'],['640','Vry Dk Beige Gray','#787060'],['642','Dk Beige Gray','#A89880'],['644','Med Beige Gray','#C8C0A8'],['645','Vry Dk Beaver Gray','#6A6460'],['646','Dk Beaver Gray','#908880'],['647','Med Beaver Gray','#B0A8A0'],['648','Lt Beaver Gray','#C8C0B8'],['666','Brt Christmas Red','#E4122A'],['676','Lt Old Gold','#DCC888'],['677','Vry Lt Old Gold','#EEE0B0'],['680','Dk Old Gold','#B89A28'],['699','Christmas Green','#106018'],['700','Brt Christmas Grn','#187820'],['701','Lt Christmas Green','#288028'],['702','Kelly Green','#309030'],['703','Chartreuse','#50A838'],['704','Brt Chartreuse','#68C030'],['712','Cream','#FFF8E8'],['718','Plum','#882060'],['720','Dk Orange Spice','#C84010'],['721','Med Orange Spice','#E05820'],['722','Lt Orange Spice','#F07840'],['725','Med Lt Topaz','#F8C020'],['726','Lt Topaz','#FAD040'],['727','Vry Lt Topaz','#FDE890'],['728','Golden Yellow','#E8A820'],['729','Med Old Gold','#CC9820'],['730','Vry Dk Olive Green','#787018'],['731','Dk Olive Green','#888020'],['732','Olive Green','#989028'],['733','Med Olive Green','#B0A838'],['734','Lt Olive Green','#C8C060'],['738','Vry Lt Tan','#E8C898'],['739','Ultra Vry Lt Tan','#F0DFC0'],['740','Tangerine','#F87000'],['741','Med Tangerine','#FA8818'],['742','Lt Tangerine','#FBA832'],['743','Med Yellow','#FCC040'],['744','Yellow','#FDD060'],['745','Lt Pale Yellow','#FDE898'],['746','Off White','#FDFAF0'],['747','Vry Lt Sky Blue','#E0F5F8'],['754','Lt Peach','#F8CEBB'],['758','Vry Lt Terra Cotta','#E8B09C'],['760','Salmon','#F09090'],['761','Lt Salmon','#F8B8B0'],['762','Vry Lt Pearl Gray','#E0E0E0'],['772','Vry Lt Yellow Green','#D8E8C0'],['775','Vry Lt Baby Blue','#D8ECF5'],['776','Med Pink','#F5A0B0'],['778','Vry Lt Antique Mauve','#DBBEC0'],['780','Ultra Vry Dk Topaz','#9A6010'],['781','Vry Dk Topaz','#A87018'],['782','Dk Topaz','#B88020'],['783','Med Topaz','#CE9828'],['791','Vry Dk Cornflower Blue','#303878'],['792','Dk Cornflower Blue','#4858A0'],['793','Med Cornflower Blue','#6878B8'],['794','Lt Cornflower Blue','#90A0CC'],['796','Dk Royal Blue','#183880'],['797','Royal Blue','#2048A0'],['798','Dk Delft Blue','#3868B0'],['799','Med Delft Blue','#5888C8'],['800','Pale Delft Blue','#A0B8D8'],['801','Dk Coffee Brown','#5A2E10'],['806','Dk Peacock Blue','#1880A0'],['807','Peacock Blue','#38A0B8'],['809','Delft','#6898C8'],['813','Lt Blue','#98B8D8'],['814','Dk Garnet','#700018'],['815','Med Garnet','#900020'],['816','Garnet','#AE1820'],['817','Vry Dk Coral Red','#CC1820'],['818','Baby Pink','#FFD8D0'],['819','Lt Baby Pink','#FFE8E8'],['820','Vry Dk Royal Blue','#102870'],['822','Lt Beige Gray','#E0D8C8'],['823','Dk Navy Blue','#181848'],['824','Vry Dk Blue','#205088'],['825','Dk Blue','#2870A8'],['826','Med Blue','#4090C0'],['827','Vry Lt Blue','#A8CCE0'],['828','Ultra Vry Lt Blue','#C8E4F0'],['829','Vry Dk Golden Olive','#786020'],['830','Dk Golden Olive','#887028'],['831','Med Golden Olive','#A08830'],['832','Golden Olive','#B8A038'],['833','Lt Golden Olive','#C8B848'],['834','Vry Lt Golden Olive','#D8CC70'],['838','Vry Dk Beige Brown','#504030'],['839','Dk Beige Brown','#705840'],['840','Med Beige Brown','#907048'],['841','Lt Beige Brown','#B09060'],['842','Vry Lt Beige Brown','#C8AE80'],['844','Ultra Dk Beaver Gray','#48484A'],['869','Vry Dk Hazel Nut Br','#7A5030'],['890','Ultra Dk Pistachio Grn','#1A4020'],['891','Dk Carnation','#F03858'],['892','Med Carnation','#F55868'],['893','Lt Carnation','#F88898'],['894','Vry Lt Carnation','#FAB0B8'],['895','Vry Dk Hunter Green','#1E4828'],['898','Vry Dk Coffee Brown','#3C1C08'],['899','Med Rose','#F07090'],['900','Dk Burnt Orange','#C03010'],['902','Vry Dk Garnet','#580018'],['904','Vry Dk Parrot Green','#386828'],['905','Dk Parrot Green','#508030'],['906','Med Parrot Green','#70A838'],['907','Lt Parrot Green','#90C048'],['909','Vry Dk Emerald Green','#087838'],['910','Dk Emerald Green','#109040'],['911','Med Emerald Green','#18A848'],['912','Lt Emerald Green','#28C060'],['913','Med Nile Green','#60C878'],['915','Dk Plum','#780848'],['917','Med Plum','#A01870'],['918','Dk Red Copper','#883010'],['919','Red Copper','#A84018'],['920','Med Copper','#B05020'],['921','Copper','#C06028'],['922','Lt Copper','#D07030'],['924','Vry Dk Gray Green','#486860'],['926','Med Gray Green','#7A9C98'],['927','Lt Gray Green','#A8C0BC'],['928','Vry Lt Gray Green','#D0DCD8'],['930','Dk Antique Blue','#3C5870'],['931','Med Antique Blue','#5878A0'],['932','Lt Antique Blue','#90A8C8'],['934','Blk Avocado Green','#3A4010'],['935','Dk Avocado Green','#485018'],['936','Vry Dk Avocado Grn','#586020'],['937','Med Avocado Green','#688028'],['938','Ultra Dk Coffee Br','#280E04'],['939','Vry Dk Navy Blue','#10183A'],['943','Med Aquamarine','#38A898'],['945','Tawny','#F0BC98'],['946','Med Burnt Orange','#E84810'],['947','Burnt Orange','#F86020'],['948','Vry Lt Peach','#FDE8DC'],['950','Lt Desert Sand','#E8C8B0'],['951','Lt Tawny','#F8D8C0'],['954','Nile Green','#70D080'],['955','Lt Nile Green','#98E0A8'],['956','Geranium','#F86070'],['957','Pale Geranium','#FAA0A0'],['958','Dk Sea Green','#28B0A0'],['959','Med Sea Green','#48C8B8'],['961','Dk Dusty Rose','#D87088'],['962','Med Dusty Rose','#E898A8'],['963','Ultra Vry Lt Dusty Rs','#FFCCD8'],['964','Lt Sea Green','#98DCD8'],['966','Med Baby Green','#A8D8A0'],['970','Lt Pumpkin','#F89040'],['971','Pumpkin','#F87020'],['972','Deep Canary','#FDB808'],['973','Brt Canary','#FFD800'],['975','Dk Golden Brown','#884010'],['976','Med Golden Brown','#C87028'],['977','Lt Golden Brown','#E09040'],['986','Vry Dk Forest Green','#285828'],['987','Dk Forest Green','#387838'],['988','Med Forest Green','#508050'],['989','Forest Green','#688868'],['991','Dk Aquamarine','#206858'],['992','Med Aquamarine','#389080'],['993','Lt Aquamarine','#60B8A8'],['995','Dk Electric Blue','#1880C8'],['996','Med Electric Blue','#28A0E8'],['3011','Dk Khaki Green','#7A7830'],['3012','Med Khaki Green','#9A9840'],['3013','Lt Khaki Green','#C0B860'],['3021','Vry Dk Brown Gray','#4A4038'],['3022','Med Brown Gray','#8C887A'],['3023','Lt Brown Gray','#B0AAA0'],['3024','Vry Lt Brown Gray','#D0CCC8'],['3031','Vry Dk Mocha Brown','#4A3018'],['3032','Med Mocha Brown','#A88860'],['3033','Vry Lt Mocha Brown','#D8C8A8'],['3041','Med Antique Violet','#887098'],['3042','Lt Antique Violet','#B0A0B8'],['3045','Dk Yellow Beige','#B89048'],['3046','Med Yellow Beige','#D0AE68'],['3047','Lt Yellow Beige','#E8D098'],['3051','Dk Green Gray','#506040'],['3052','Med Green Gray','#788060'],['3053','Green Gray','#9A9C7A'],['3064','Desert Sand','#C89878'],['3072','Vry Lt Beaver Gray','#D8D8D8'],['3078','Vry Lt Golden Yellow','#FFFFF0'],['3325','Lt Baby Blue','#B8D0E8'],['3326','Lt Rose','#F5B8C0'],['3328','Dk Salmon','#DC6A68'],['3340','Med Apricot','#F89070'],['3341','Apricot','#FAB098'],['3345','Dk Hunter Green','#286830'],['3346','Hunter Green','#387840'],['3347','Med Yellow Green','#589860'],['3348','Lt Yellow Green','#A0C898'],['3350','Ultra Dk Dusty Rose','#C02860'],['3354','Lt Dusty Rose','#E0A0A8'],['3362','Dk Pine Green','#487838'],['3363','Med Pine Green','#608848'],['3364','Pine Green','#88A868'],['3371','Black Brown','#1C0E08'],['3607','Lt Plum','#C83890'],['3608','Vry Lt Plum','#E878C0'],['3609','Ultra Lt Plum','#F5B0D8'],['3685','Vry Dk Mauve','#7A1848'],['3687','Mauve','#C06880'],['3688','Med Mauve','#D898A8'],['3689','Lt Mauve','#EAC0C8'],['3705','Dk Melon','#FF6878'],['3706','Med Melon','#FF98A8'],['3708','Lt Melon','#FFBEC8'],['3712','Med Salmon','#F08888'],['3713','Vry Lt Salmon','#FAD0C8'],['3716','Vry Lt Dusty Rose','#FFCCCB'],['3721','Dk Shell Pink','#A84050'],['3722','Med Shell Pink','#B86070'],['3726','Dk Antique Mauve','#906070'],['3727','Lt Antique Mauve','#D0A8B0'],['3731','Vry Dk Dusty Rose','#D05878'],['3733','Dusty Rose','#E08098'],['3740','Dk Antique Violet','#6A5878'],['3743','Vry Lt Antique Violet','#D0C8D0'],['3746','Dk Blue Violet','#6860A0'],['3747','Vry Lt Blue Violet','#D8D8F0'],['3750','Vry Dk Antique Blue','#2C4460'],['3752','Vry Lt Antique Blue','#C8D4E0'],['3753','Ultra Vry Lt Ant Bl','#DCE8F0'],['3755','Baby Blue','#80A8CC'],['3756','Ultra Vry Lt Baby Bl','#F0F8FF'],['3760','Med Wedgwood','#3890C0'],['3761','Lt Sky Blue','#A8D8F0'],['3765','Vry Dk Peacock Blue','#0878A0'],['3766','Lt Peacock Blue','#68C0D8'],['3768','Dk Gray Green','#5A7870'],['3770','Vry Lt Tawny','#FFF0E0'],['3771','Ultra Vry Lt Terra Ct','#F8D0C0'],['3772','Vry Dk Desert Sand','#9A7058'],['3773','Med Desert Sand','#BC9078'],['3774','Vry Lt Desert Sand','#F0DDD0'],['3776','Lt Mahogany','#D07840'],['3777','Vry Dk Terra Cotta','#7A3020'],['3778','Lt Terra Cotta','#D89080'],['3779','Ultra Vry Lt Terra Ct','#F8D0C8'],['3781','Dk Mocha Brown','#7A6040'],['3782','Lt Mocha Brown','#C8B090'],['3787','Dk Brown Gray','#60584A'],['3790','Ultra Vry Dk Beige Gr','#6A6050'],['3799','Vry Dk Pewter Gray','#404044'],['3801','Lt Christmas Red','#E82030'],['3802','Vry Dk Antique Mauve','#6A3850'],['3803','Dk Mauve','#A03060'],['3804','Dk Cyclamen Pink','#E81880'],['3805','Cyclamen Pink','#F24898'],['3806','Lt Cyclamen Pink','#F880B8'],['3807','Cornflower Blue','#5878A8'],['3808','Ultra Vry Dk Turquoise','#107888'],['3809','Vry Dk Turquoise','#1898A8'],['3810','Dk Turquoise','#28A8B8'],['3811','Vry Lt Turquoise','#B8E0E8'],['3812','Vry Dk Sea Green','#107868'],['3813','Lt Blue Green','#A8D8C8'],['3814','Aquamarine','#288878'],['3815','Dk Celadon Green','#387858'],['3816','Celadon Green','#589870'],['3817','Lt Celadon Green','#88C0A0'],['3818','Ultra Vry Dk Em Grn','#085828'],['3819','Lt Moss Green','#D0D840'],['3820','Dk Straw','#D8A820'],['3821','Straw','#E8C030'],['3822','Lt Straw','#F0D460'],['3823','Ultra Pale Yellow','#FFFFF8'],['3824','Lt Apricot','#FEC8B0'],['3825','Pale Pumpkin','#FDB888'],['3826','Golden Brown','#A86820'],['3827','Pale Golden Brown','#EDBA70'],['3828','Hazel Nut Brown','#A87848'],['3829','Vry Dk Old Gold','#9A7818'],['3830','Terra Cotta','#B85840'],['3831','Dk Raspberry','#B82038'],['3832','Med Raspberry','#D84060'],['3833','Lt Raspberry','#E87090'],['3834','Dk Grape','#703060'],['3835','Med Grape','#985088'],['3836','Lt Grape','#C090B8'],['3837','Ultra Dk Lavender','#602880'],['3838','Dk Lavender Blue','#507098'],['3839','Med Lavender Blue','#7890B0'],['3840','Lt Lavender Blue','#A0B8D0'],['3841','Pale Baby Blue','#D8E8F4'],['3842','Dk Wedgwood','#285880'],['3843','Electric Blue','#0898D8'],['3844','Brt Dk Turquoise','#00A0B8'],['3845','Med Brt Turquoise','#00B8D0'],['3846','Lt Brt Turquoise','#00D0E8'],['3847','Dk Teal Green','#207870'],['3848','Med Teal Green','#389890'],['3849','Lt Teal Green','#58B8B0'],['3850','Dk Bright Green','#109878'],['3851','Lt Bright Green','#30C898'],['3852','Vry Dk Straw','#C89808'],['3853','Dk Autumn Gold','#E88820'],['3854','Med Autumn Gold','#F0A040'],['3855','Lt Autumn Gold','#F8C060'],['3856','Ultra Vry Lt Mahog','#FFD8C0'],['3857','Dk Rosewood','#601818'],['3858','Med Rosewood','#904040'],['3859','Lt Rosewood','#C08080'],['3860','Cocoa','#806060'],['3861','Lt Cocoa','#B09898'],['3862','Dk Mocha Beige','#806840'],['3863','Med Mocha Beige','#A08850'],['3864','Lt Mocha Beige','#C0B080'],['3865','Winter White','#F8F8F0'],['3866','Ultra Vry Lt Mocha Br','#F5EFE0']];
+
+// ═══ COLOR SCIENCE ══════════════════════════════════════════════════════════
+function sL(v){v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);}
+function r2lab(r,g,b){
+  const rl=sL(r),gl=sL(g),bl=sL(b);
+  const X=rl*.4124564+gl*.3575761+bl*.1804375,Y=rl*.2126729+gl*.7151522+bl*.0721750,Z=rl*.0193339+gl*.1191920+bl*.9503041;
+  const f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116;
+  const fy=f(Y);
+  return[116*fy-16,500*(f(X/.95047)-fy),200*(fy-f(Z/1.08883))];
+}
+function hx2rgb(h){const n=parseInt(h.replace('#',''),16)||0;return[(n>>16)&255,(n>>8)&255,n&255];}
+
+// CIEDE2000 textile (kL=2) — used for full-quality DMC matching
+function dE00(L1,a1,b1,L2,a2,b2){
+  const C1=Math.hypot(a1,b1),C2=Math.hypot(a2,b2);
+  const Cb7=Math.pow((C1+C2)/2,7),G=.5*(1-Math.sqrt(Cb7/(Cb7+6103515625)));
+  const a1p=a1*(1+G),a2p=a2*(1+G),C1p=Math.hypot(a1p,b1),C2p=Math.hypot(a2p,b2);
+  let h1p=Math.atan2(b1,a1p)*180/Math.PI;if(h1p<0)h1p+=360;
+  let h2p=Math.atan2(b2,a2p)*180/Math.PI;if(h2p<0)h2p+=360;
+  const dLp=L2-L1,dCp=C2p-C1p,C12=C1p*C2p;
+  let dhp=0;if(!C12)dhp=0;else if(Math.abs(h2p-h1p)<=180)dhp=h2p-h1p;else dhp=h2p-h1p>180?h2p-h1p-360:h2p-h1p+360;
+  const dHp=2*Math.sqrt(C12)*Math.sin(dhp*Math.PI/360),Lbp=(L1+L2)/2,Cbp=(C1p+C2p)/2;
+  let hbp=0;if(!C12)hbp=h1p+h2p;else if(Math.abs(h1p-h2p)<=180)hbp=(h1p+h2p)/2;else hbp=h1p+h2p<360?(h1p+h2p+360)/2:(h1p+h2p-360)/2;
+  const T=1-.17*Math.cos((hbp-30)*Math.PI/180)+.24*Math.cos(2*hbp*Math.PI/180)+.32*Math.cos((3*hbp+6)*Math.PI/180)-.2*Math.cos((4*hbp-63)*Math.PI/180);
+  const SL=1+.015*(Lbp-50)**2/Math.sqrt(20+(Lbp-50)**2),SC=1+.045*Cbp,SH=1+.015*Cbp*T;
+  const Cb7b=Math.pow(Cbp,7),RC=2*Math.sqrt(Cb7b/(Cb7b+6103515625));
+  const RT=RC*Math.sin((-60*Math.exp(-(((hbp-275)/25)**2)))*Math.PI/180);
+  return Math.sqrt(Math.pow(dLp/(2*SL),2)+Math.pow(dCp/SC,2)+Math.pow(dHp/SH,2)+RT*(dCp/SC)*(dHp/SH));
+}
+
+// Pre-build DMC with RGB + LAB
+const DMC=D.map(([code,name,hex])=>{const rgb=hx2rgb(hex);return{code,name,hex,rgb,lab:r2lab(rgb[0],rgb[1],rgb[2])};});
+
+// Nearest DMC full quality (CIEDE2000)
+function nearDMC(L,a,b){let bi=0,bd=1e9;for(let i=0;i<DMC.length;i++){const d=dE00(L,a,b,DMC[i].lab[0],DMC[i].lab[1],DMC[i].lab[2]);if(d<bd){bd=d;bi=i;}}return bi;}
+// Nearest DMC fast (euclidean RGB) — for live preview only
+function nearDMCfast(r,g,b){let bi=0,bd=1e9;for(let i=0;i<DMC.length;i++){const dr=r-DMC[i].rgb[0],dg=g-DMC[i].rgb[1],db=b-DMC[i].rgb[2],d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;bi=i;}}return bi;}
+// Nearest in palette (LAB euclidean, fast)
+function nearPal(L,a,b,p){let bi=0,bd=1e9;for(let i=0;i<p.length;i++){const d=(L-p[i][0])**2+(a-p[i][1])**2+(b-p[i][2])**2;if(d<bd){bd=d;bi=i;}}return bi;}
+
+// ═══ QUANTIZATION ═══════════════════════════════════════════════════════════
+function mCut(pts,d){
+  if(d===0||!pts.length){const s=pts.reduce((a,v)=>[a[0]+v[0],a[1]+v[1],a[2]+v[2]],[0,0,0]);return[pts.length?s.map(v=>v/pts.length):[50,0,0]];}
+  let mx=0,ax=0;
+  for(let a=0;a<3;a++){const m=pts.reduce((s,v)=>s+v[a],0)/pts.length;const v=pts.reduce((s,v2)=>s+(v2[a]-m)**2,0)/pts.length;if(v>mx){mx=v;ax=a;}}
+  pts.sort((a,b)=>a[ax]-b[ax]);const mid=pts.length>>1;
+  return[...mCut(pts.slice(0,mid),d-1),...mCut(pts.slice(mid),d-1)];
+}
+function wuKmeans(sample,k,iters=22){
+  const dep=Math.ceil(Math.log2(Math.max(k,2)));
+  let c=mCut([...sample],dep);
+  while(c.length>k)c.pop();
+  while(c.length<k)c.push(sample[Math.floor(Math.random()*sample.length)].slice());
+  for(let it=0;it<iters;it++){
+    const s=Array.from({length:k},()=>[0,0,0,0]);
+    for(const p of sample){let bi=0,bd=1e9;for(let j=0;j<k;j++){const d=(p[0]-c[j][0])**2+(p[1]-c[j][1])**2+(p[2]-c[j][2])**2;if(d<bd){bd=d;bi=j;}}s[bi][0]+=p[0];s[bi][1]+=p[1];s[bi][2]+=p[2];s[bi][3]++;}
+    for(let j=0;j<k;j++)if(s[j][3])c[j]=[s[j][0]/s[j][3],s[j][1]/s[j][3],s[j][2]/s[j][3]];
+  }
+  return c;
+}
+
+// Fast k-means in RGB (for preview)
+function fastKmeans(sample,k){
+  let c=mCut([...sample],Math.ceil(Math.log2(Math.max(k,2))));
+  while(c.length>k)c.pop();while(c.length<k)c.push(sample[Math.floor(Math.random()*sample.length)].slice());
+  for(let it=0;it<8;it++){
+    const s=Array.from({length:k},()=>[0,0,0,0]);
+    for(const p of sample){let bi=0,bd=1e9;for(let j=0;j<k;j++){const d=(p[0]-c[j][0])**2+(p[1]-c[j][1])**2+(p[2]-c[j][2])**2;if(d<bd){bd=d;bi=j;}}s[bi][0]+=p[0];s[bi][1]+=p[1];s[bi][2]+=p[2];s[bi][3]++;}
+    for(let j=0;j<k;j++)if(s[j][3])c[j]=[s[j][0]/s[j][3],s[j][1]/s[j][3],s[j][2]/s[j][3]];
+  }
+  return c;
+}
+
+// ═══ IMAGE PROCESSING ═══════════════════════════════════════════════════════
+function sobel(lb,W,H){
+  const e=new Float32Array(W*H);let mx=0;
+  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
+    const tl=lb[((y-1)*W+x-1)*3],tc=lb[((y-1)*W+x)*3],tr=lb[((y-1)*W+x+1)*3];
+    const ml=lb[(y*W+x-1)*3],mr=lb[(y*W+x+1)*3];
+    const bl=lb[((y+1)*W+x-1)*3],bc=lb[((y+1)*W+x)*3],br=lb[((y+1)*W+x+1)*3];
+    const m=Math.sqrt((-tl-2*ml-bl+tr+2*mr+br)**2+(-tl-2*tc-tr+bl+2*bc+br)**2);
+    e[y*W+x]=m;if(m>mx)mx=m;
+  }
+  if(mx>0)for(let i=0;i<e.length;i++)e[i]/=mx;
+  return e;
+}
+function locVar(lb,W,H){
+  const v=new Float32Array(W*H);let mx=0;
+  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
+    const ci=(y*W+x)*3,Lc=lb[ci],Ac=lb[ci+1],Bc=lb[ci+2];
+    let s=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const ni=((y+dy)*W+x+dx)*3;s+=(lb[ni]-Lc)**2+(lb[ni+1]-Ac)**2+(lb[ni+2]-Bc)**2;}
+    v[y*W+x]=s/8;if(s/8>mx)mx=s/8;
+  }
+  if(mx>0)for(let i=0;i<v.length;i++)v[i]/=mx;
+  return v;
+}
+function wSample(lb,em,W,H,n){
+  const t=W*H,ws=new Float32Array(t);let wS=0;
+  for(let i=0;i<t;i++){ws[i]=1+em[i]*4;wS+=ws[i];}
+  const step=wS/n;let acc=Math.random()*step,cum=0;const out=[];
+  for(let i=0;i<t&&out.length<n;i++){cum+=ws[i];while(acc<cum&&out.length<n){out.push([lb[i*3],lb[i*3+1],lb[i*3+2]]);acc+=step;}}
+  return out;
+}
+function bilateral(buf,W,H,str){
+  if(!str)return buf;const sS=str*.7+.5,sR=str*3+5,r=Math.max(1,Math.round(sS*1.5));
+  const o=new Float32Array(buf.length);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const ci=(y*W+x)*3,Lc=buf[ci],Ac=buf[ci+1],Bc=buf[ci+2];
+    let wL=0,wA=0,wB=0,ws=0;
+    for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+      const nx=Math.max(0,Math.min(W-1,x+dx)),ny=Math.max(0,Math.min(H-1,y+dy)),ni=(ny*W+nx)*3;
+      const w=Math.exp(-(dx*dx+dy*dy)/(2*sS*sS)-((buf[ni]-Lc)**2+(buf[ni+1]-Ac)**2+(buf[ni+2]-Bc)**2)/(2*sR*sR));
+      wL+=w*buf[ni];wA+=w*buf[ni+1];wB+=w*buf[ni+2];ws+=w;
+    }
+    o[ci]=wL/ws;o[ci+1]=wA/ws;o[ci+2]=wB/ws;
+  }
+  return o;
+}
+function adjLab(buf,co,br,sa){
+  const cf=(259*(co+255))/(255*(259-co)),o=new Float32Array(buf.length);
+  for(let i=0;i<buf.length/3;i++){
+    let L=buf[i*3],A=buf[i*3+1],B=buf[i*3+2];
+    L=Math.min(100,Math.max(0,cf*(L+br*.4-50)+50));const s=1+sa/100;
+    o[i*3]=L;o[i*3+1]=Math.max(-128,Math.min(127,A*s));o[i*3+2]=Math.max(-128,Math.min(127,B*s));
+  }
+  return o;
+}
+function adaptiveFS(lb,W,H,pl,str,em,vm){
+  const fs=str/10,buf=new Float32Array(lb),g=new Int32Array(W*H);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const i=y*W+x,L=Math.min(100,Math.max(0,buf[i*3])),A=Math.max(-128,Math.min(127,buf[i*3+1])),B=Math.max(-128,Math.min(127,buf[i*3+2]));
+    const pi=nearPal(L,A,B,pl);g[i]=pi;
+    if(fs>0){const ea=1-em[i]*.85,va=Math.min(1,vm[i]*5),lf=fs*ea*va;
+      if(lf>.01){const eL=(L-pl[pi][0])*lf,eA=(A-pl[pi][1])*lf,eB=(B-pl[pi][2])*lf;
+        if(x+1<W){buf[(i+1)*3]+=eL*7/16;buf[(i+1)*3+1]+=eA*7/16;buf[(i+1)*3+2]+=eB*7/16;}
+        if(y+1<H){if(x>0){buf[(i+W-1)*3]+=eL*3/16;buf[(i+W-1)*3+1]+=eA*3/16;buf[(i+W-1)*3+2]+=eB*3/16;}buf[(i+W)*3]+=eL*5/16;buf[(i+W)*3+1]+=eA*5/16;buf[(i+W)*3+2]+=eB*5/16;if(x+1<W){buf[(i+W+1)*3]+=eL/16;buf[(i+W+1)*3+1]+=eA/16;buf[(i+W+1)*3+2]+=eB/16;}}}}
+  }
+  return g;
+}
+function sDeconf(g,W,H,pl){
+  const o=new Int32Array(g);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const ci=g[y*W+x],nb=[];
+    if(x>0)nb.push(g[y*W+x-1]);if(x+1<W)nb.push(g[y*W+x+1]);if(y>0)nb.push(g[(y-1)*W+x]);if(y+1<H)nb.push(g[(y+1)*W+x]);
+    if(!nb.length||nb.some(n=>n===ci))continue;
+    let mc=1e9;for(const n of nb){const d=Math.sqrt((pl[ci][0]-pl[n][0])**2+(pl[ci][1]-pl[n][1])**2+(pl[ci][2]-pl[n][2])**2);if(d<mc)mc=d;}
+    if(mc>25)continue;
+    const fr={};for(const n of nb)fr[n]=(fr[n]||0)+1;o[y*W+x]=+Object.keys(fr).reduce((a,b)=>fr[a]>fr[b]?a:b);
+  }
+  return o;
+}
+function dedupPal(rp){
+  const m=[],rm=new Int32Array(rp.length);
+  for(let i=0;i<rp.length;i++){
+    let f=-1;for(let j=0;j<m.length;j++){if(m[j].dmc.code===rp[i].dmc.code||dE00(m[j].lab[0],m[j].lab[1],m[j].lab[2],rp[i].lab[0],rp[i].lab[1],rp[i].lab[2])<3){f=j;break;}}
+    if(f>=0)rm[i]=f;else{rm[i]=m.length;m.push({...rp[i],palIdx:m.length});}
+  }
+  return{merged:m,remap:rm};
+}
+
+// ═══ EXIF ════════════════════════════════════════════════════════════════════
+function readExif(buf){
+  try{const v=new DataView(buf);if(v.byteLength<4||v.getUint16(0)!==0xFFD8)return 1;let o=2;while(o+4<v.byteLength){const m=v.getUint16(o);o+=2;const l=v.getUint16(o);if(m===0xFFE1&&l>8&&v.getUint32(o+2)===0x45786966){const t=o+8;if(t+8>v.byteLength)break;const le=v.getUint16(t)===0x4949;const g16=x=>le?v.getUint16(x,true):v.getUint16(x,false),g32=x=>le?v.getUint32(x,true):v.getUint32(x,false);const ifd=t+g32(t+4);if(ifd+2>v.byteLength)break;const n=g16(ifd);for(let i=0;i<n;i++){const to=ifd+2+i*12;if(to+12>v.byteLength)break;if(g16(to)===0x0112)return g16(to+8);}}o+=l;}}catch(e){}return 1;
+}
+function drawExif(ctx,img,o,dw,dh){
+  ctx.save();
+  switch(o){case 2:ctx.transform(-1,0,0,1,dw,0);break;case 3:ctx.transform(-1,0,0,-1,dw,dh);break;case 4:ctx.transform(1,0,0,-1,0,dh);break;case 5:ctx.transform(0,1,1,0,0,0);break;case 6:ctx.transform(0,1,-1,0,dh,0);break;case 7:ctx.transform(0,-1,-1,0,dh,dw);break;case 8:ctx.transform(0,-1,1,0,0,dw);break;}
+  if(o>=5&&o<=8)ctx.drawImage(img,0,0,dh,dw);else ctx.drawImage(img,0,0,dw,dh);ctx.restore();
+}
+
+// ═══ SYMBOLS ════════════════════════════════════════════════════════════════
+const SYM=['●','■','▲','◆','★','✕','○','□','△','◇','✦','⊕','⊗','⊞','⊠','⊡','◈','◉','⬟','⬡','⬢','⬣','⬤','⬥','⬦','⊛','⊜','⊝','⊞','⊟'];
+function assignSym(pal){
+  const sorted=[...pal].map((e,i)=>{let h=Math.atan2(e.lab[2],e.lab[1])*180/Math.PI;if(h<0)h+=360;return{...e,oi:i,k:h*1000+e.lab[0]};}).sort((a,b)=>a.k-b.k);
+  const m=new Array(pal.length);sorted.forEach((e,i)=>{m[e.oi]=SYM[i%SYM.length];});return m;
+}
+function confScore(g,W,H){let iso=0;for(let y=0;y<H;y++)for(let x=0;x<W;x++){const ci=g[y*W+x],nb=[];if(x>0)nb.push(g[y*W+x-1]);if(x+1<W)nb.push(g[y*W+x+1]);if(y>0)nb.push(g[(y-1)*W+x]);if(y+1<H)nb.push(g[(y+1)*W+x]);if(nb.length&&nb.every(n=>n!==ci))iso++;}return Math.round(iso/(W*H)*100);}
+
+// ═══ STATE ══════════════════════════════════════════════════════════════════
+let srcImg=null,exifO=1,imgAspect=1;
+let PD=null,AP=[],selI=null,pCanvas=null;
+let curAida=14,drawerOpen=false,livePreview=false,previewTimer=null;
+const LW=8.5,LH=11,MAX_SRC=2000;
+const AIDA_TXT={11:'Large stitches, great for beginners',14:'Most common, great for beginners',16:'Slightly finer than 14-ct',18:'Fine stitches, more detail',22:'Very fine — miniature work',28:'Very fine evenweave linen'};
+
+// ═══ SLIDER WIRING ══════════════════════════════════════════════════════════
+[{s:'slC',v:'vC',f:x=>x},{s:'slCo',v:'vCo',f:x=>(+x>=0?'+':'')+x},{s:'slBr',v:'vBr',f:x=>(+x>=0?'+':'')+x},{s:'slSa',v:'vSa',f:x=>(+x>=0?'+':'')+x},{s:'slSm',v:'vSm',f:x=>x},{s:'slDi',v:'vDi',f:x=>x}].forEach(({s,v,f})=>{const el=document.getElementById(s),o=document.getElementById(v);el.addEventListener('input',()=>{o.textContent=f(el.value);if(livePreview)scheduleLivePreview();});o.textContent=f(el.value);});
+
+const widthSlider=document.getElementById('widthSlider');
+widthSlider.addEventListener('input',()=>{updInfo();if(livePreview&&srcImg)scheduleLivePreview();});
+
+function updInfo(){
+  const W=+widthSlider.value;
+  const H=srcImg?Math.round(W/imgAspect):W;
+  const inW=(W/curAida).toFixed(1),inH=(H/curAida).toFixed(1);
+  document.getElementById('stitchMain').textContent=`${W.toLocaleString()} × ${H.toLocaleString()} stitches`;
+  document.getElementById('stitchSub').textContent=`${inW}″ × ${inH}″ on ${curAida}-ct`;
+  const over=+inW>LW||+inH>LH;
+  document.getElementById('pagesBadge').classList.toggle('show',over);
+}
+updInfo();
+
+function setAida(ct){
+  curAida=ct;
+  document.querySelectorAll('.ap').forEach(p=>p.classList.toggle('on',+p.dataset.ct===ct));
+  document.getElementById('aidaNote').innerHTML=`<b>${ct}-ct Aida</b> — ${AIDA_TXT[ct]}. Affects fabric/print size only, not pattern detail.`;
+  updInfo();
+}
+function toggleSettings(){drawerOpen=!drawerOpen;document.getElementById('drawer').classList.toggle('open',drawerOpen);document.getElementById('settingsBtn').classList.toggle('active',drawerOpen);}
+function setP(p,l){document.getElementById('progFill').style.width=p+'%';document.getElementById('progLabel').textContent=l||'';}
+
+// ═══ LIVE PREVIEW ═══════════════════════════════════════════════════════════
+function toggleLivePreview(){
+  livePreview=!livePreview;
+  document.getElementById('previewBtn').classList.toggle('active',livePreview);
+  if(livePreview&&srcImg)scheduleLivePreview();
+}
+function scheduleLivePreview(){
+  clearTimeout(previewTimer);
+  previewTimer=setTimeout(runLivePreview,350);
+}
+function runLivePreview(){
+  if(!srcImg)return;
+  const W=+widthSlider.value;
+  const H=Math.max(1,Math.round(W/imgAspect));
+  const k=Math.max(2,Math.min(30,+document.getElementById('slC').value||20));
+  const co=+document.getElementById('slCo').value||0;
+  const br=+document.getElementById('slBr').value||0;
+  const sa=+document.getElementById('slSa').value||0;
+
+  // Fast pipeline: no bilateral, no Sobel, no CIEDE2000, fewer k-means iters
+  const swapped=exifO>=5&&exifO<=8;
+  const logW=swapped?srcImg.naturalHeight:srcImg.naturalWidth;
+  const logH=swapped?srcImg.naturalWidth:srcImg.naturalHeight;
+  const sc=Math.min(1,MAX_SRC/Math.max(logW,logH));
+  const cW=Math.round(logW*sc),cH=Math.round(logH*sc);
+
+  const c1=document.createElement('canvas');c1.width=cW;c1.height=cH;
+  const x1=c1.getContext('2d');x1.fillStyle='#fff';x1.fillRect(0,0,cW,cH);drawExif(x1,srcImg,exifO,cW,cH);
+  const c3=document.createElement('canvas');c3.width=W;c3.height=H;
+  const x3=c3.getContext('2d');x3.imageSmoothingQuality='high';x3.drawImage(c1,0,0,W,H);
+  const raw=x3.getImageData(0,0,W,H).data;
+
+  // Basic RGB adjustments
+  const adj=new Uint8Array(W*H*3);
+  const cf=(259*(co+255))/(255*(259-co));
+  for(let i=0;i<W*H;i++){
+    let r=raw[i*4],g=raw[i*4+1],b=raw[i*4+2];
+    r=Math.min(255,Math.max(0,r+br*.8));g=Math.min(255,Math.max(0,g+br*.8));b=Math.min(255,Math.max(0,b+br*.8));
+    r=Math.min(255,Math.max(0,cf*(r-128)+128));g=Math.min(255,Math.max(0,cf*(g-128)+128));b=Math.min(255,Math.max(0,cf*(b-128)+128));
+    if(sa){const gr=r*.299+g*.587+b*.114,s=1+sa/100;r=Math.min(255,Math.max(0,gr+(r-gr)*s));g=Math.min(255,Math.max(0,gr+(g-gr)*s));b=Math.min(255,Math.max(0,gr+(b-gr)*s));}
+    adj[i*3]=r;adj[i*3+1]=g;adj[i*3+2]=b;
+  }
+
+  // Fast RGB sampling
+  const tot=W*H,step=Math.max(1,Math.floor(tot/2000));
+  const sample=[];for(let i=0;i<tot;i+=step)sample.push([adj[i*3],adj[i*3+1],adj[i*3+2]]);
+  const centers=fastKmeans(sample,k);
+
+  // Map to nearest DMC fast (RGB euclidean)
+  const seen={},pal=[];const c2p=new Int32Array(k);
+  for(let j=0;j<k;j++){
+    const c=centers[j];const idx=nearDMCfast(c[0],c[1],c[2]);const d=DMC[idx];
+    if(seen[d.code]===undefined){seen[d.code]=pal.length;pal.push({dmc:d,rgb:d.rgb,lab:d.lab,count:0,palIdx:pal.length});}
+    c2p[j]=seen[d.code];
+  }
+
+  // Assign pixels (fast nearest neighbor in RGB)
+  const palRGB=pal.map(e=>e.rgb);
+  const grid=new Int32Array(tot);
+  for(let i=0;i<tot;i++){
+    const r=adj[i*3],g=adj[i*3+1],b=adj[i*3+2];
+    let bi=0,bd=1e9;
+    for(let j=0;j<palRGB.length;j++){const dr=r-palRGB[j][0],dg=g-palRGB[j][1],db=b-palRGB[j][2],d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;bi=j;}}
+    grid[i]=bi;
+  }
+
+  // One pass of confetti cleanup
+  const counts=new Int32Array(pal.length);for(const ci of grid)counts[ci]++;
+  AP=pal.map((e,i)=>({...e,count:counts[i]})).filter(e=>e.count>0);
+  const o2n=new Int32Array(pal.length).fill(-1);AP.forEach((e,ni)=>{o2n[e.palIdx]=ni;});
+  const rg=new Int32Array(tot);for(let i=0;i<tot;i++){const m=o2n[grid[i]];rg[i]=m>=0?m:0;}
+  const sm=assignSym(AP);AP.forEach((e,i)=>{e.symbol=sm[i];});
+  PD={grid:rg,cols:W,rows:H,AP,cs:0};
+
+  drawCanvas('preview');
+  renderPal();
+  updStats(0,true);
+  renderTL();
+  document.getElementById('printBtn').classList.add('show');
+  if(!drawerOpen)toggleSettings();
+}
+
+// ═══ FULL GENERATE ═══════════════════════════════════════════════════════════
+function generate(){
+  if(!srcImg){document.getElementById('fi').click();return;}
+  const btn=document.getElementById('genBtn');
+  btn.disabled=true;btn.innerHTML=`<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Working…`;
+  document.getElementById('prog').classList.add('show');setP(2,'Starting…');
+  setTimeout(()=>{try{doGen();}catch(e){console.error(e);alert('Something went wrong — try a smaller chart size.');}finally{btn.disabled=false;btn.innerHTML=`<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Full quality`;setP(100,'');setTimeout(()=>document.getElementById('prog').classList.remove('show'),600);}},40);
+}
+function doGen(){
+  const W=+widthSlider.value,H=Math.max(1,Math.round(W/imgAspect));
+  const k=Math.max(2,Math.min(30,+document.getElementById('slC').value||20));
+  const co=+document.getElementById('slCo').value||0,br=+document.getElementById('slBr').value||0;
+  const sa=+document.getElementById('slSa').value||0,sm=+document.getElementById('slSm').value||0,di=+document.getElementById('slDi').value||0;
+
+  setP(6,'Downscaling…');
+  const sw=exifO>=5&&exifO<=8,logW=sw?srcImg.naturalHeight:srcImg.naturalWidth,logH=sw?srcImg.naturalWidth:srcImg.naturalHeight;
+  const sc=Math.min(1,MAX_SRC/Math.max(logW,logH)),cW=Math.round(logW*sc),cH=Math.round(logH*sc);
+  const c1=document.createElement('canvas');c1.width=cW;c1.height=cH;const x1=c1.getContext('2d');x1.fillStyle='#fff';x1.fillRect(0,0,cW,cH);drawExif(x1,srcImg,exifO,cW,cH);
+  const mW=Math.max(W,Math.round(cW/2)),mH=Math.max(H,Math.round(cH/2));
+  const c2=document.createElement('canvas');c2.width=mW;c2.height=mH;const x2=c2.getContext('2d');x2.imageSmoothingQuality='high';x2.drawImage(c1,0,0,mW,mH);
+  const c3=document.createElement('canvas');c3.width=W;c3.height=H;const x3=c3.getContext('2d');x3.imageSmoothingQuality='high';x3.drawImage(c2,0,0,W,H);
+  const raw=x3.getImageData(0,0,W,H).data;
+
+  setP(14,'Converting to LAB…');const tot=W*H,lb=new Float32Array(tot*3);
+  for(let i=0;i<tot;i++){const l=r2lab(raw[i*4],raw[i*4+1],raw[i*4+2]);lb[i*3]=l[0];lb[i*3+1]=l[1];lb[i*3+2]=l[2];}
+
+  setP(20,'Adjustments…');let buf=adjLab(lb,co,br,sa);
+  setP(28,'Bilateral smoothing…');buf=bilateral(buf,W,H,sm);
+  setP(34,'Edge detection…');const em=sobel(buf,W,H);
+  setP(38,'Variance analysis…');const vm=locVar(buf,W,H);
+  setP(44,'Smart sampling…');const sample=wSample(buf,em,W,H,Math.min(tot,6000));
+  setP(54,'Color clustering…');const centers=wuKmeans(sample,k);
+
+  setP(63,'CIEDE2000 matching…');
+  const rp=centers.map(c=>{const idx=nearDMC(c[0],c[1],c[2]);return{dmc:DMC[idx],rgb:DMC[idx].rgb,lab:DMC[idx].lab,count:0,palIdx:0};});
+  const{merged,remap}=dedupPal(rp);
+
+  setP(72,'Dithering…');const pl=merged.map(e=>e.lab);
+  let grid=adaptiveFS(buf,W,H,pl,di,em,vm);
+  setP(82,'Cleanup…');grid=sDeconf(grid,W,H,pl);grid=sDeconf(grid,W,H,pl);
+
+  setP(90,'Finalising…');
+  const counts=new Int32Array(merged.length);for(const ci of grid)counts[ci]++;
+  AP=merged.map((e,i)=>({...e,count:counts[i]})).filter(e=>e.count>0);
+  const o2n=new Int32Array(merged.length).fill(-1);AP.forEach((e,ni)=>{o2n[e.palIdx]=ni;});
+  const rg=new Int32Array(tot);for(let i=0;i<tot;i++){const m=o2n[grid[i]];rg[i]=m>=0?m:0;}
+  const sm2=assignSym(AP);AP.forEach((e,i)=>{e.symbol=sm2[i];});
+  const cs=confScore(rg,W,H);PD={grid:rg,cols:W,rows:H,AP,cs};
+
+  setP(96,'Rendering…');
+  drawCanvas('full');renderPal();updStats(cs,false);renderTL();
+  document.getElementById('printBtn').classList.add('show');
+  if(!drawerOpen)toggleSettings();
+}
+
+// ═══ RENDER CANVAS ═══════════════════════════════════════════════════════════
+function drawCanvas(mode){
+  const{grid,cols,rows}=PD;
+  const CELL=Math.max(3,Math.min(14,Math.floor(700/Math.max(cols,rows))));
+  const M=CELL>=5?20:0;
+  const cv=document.getElementById('patternCanvas');cv.width=M+cols*CELL;cv.height=M+rows*CELL;
+  const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
+
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const ci=grid[r*cols+c],item=AP[ci]??AP[0];
+    const px=M+c*CELL,py=M+r*CELL;
+    ctx.fillStyle=item.dmc.hex;ctx.fillRect(px,py,CELL,CELL);
+    if(CELL>=7){const[dr,dg,db]=item.rgb;const lum=(dr*299+dg*587+db*114)/1000;ctx.fillStyle=lum>140?'rgba(0,0,0,.52)':'rgba(255,255,255,.78)';ctx.font=`${Math.max(5,CELL-3)}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(item.symbol,px+CELL/2,py+CELL/2);}
+  }
+  ctx.strokeStyle='rgba(0,0,0,.08)';ctx.lineWidth=.5;
+  for(let c=0;c<=cols;c++){ctx.beginPath();ctx.moveTo(M+c*CELL,M);ctx.lineTo(M+c*CELL,M+rows*CELL);ctx.stroke();}
+  for(let r=0;r<=rows;r++){ctx.beginPath();ctx.moveTo(M,M+r*CELL);ctx.lineTo(M+cols*CELL,M+r*CELL);ctx.stroke();}
+  if(CELL>=4){ctx.strokeStyle='rgba(0,0,0,.20)';ctx.lineWidth=1;for(let c=0;c<=cols;c+=10){ctx.beginPath();ctx.moveTo(M+c*CELL,M);ctx.lineTo(M+c*CELL,M+rows*CELL);ctx.stroke();}for(let r=0;r<=rows;r+=10){ctx.beginPath();ctx.moveTo(M,M+r*CELL);ctx.lineTo(M+cols*CELL,M+r*CELL);ctx.stroke();}}
+  if(M>0){ctx.fillStyle='#b8929c';ctx.font='8px system-ui';ctx.textAlign='right';ctx.textBaseline='middle';for(let r=0;r<=rows;r+=10)if(r>0)ctx.fillText(r,M-3,M+r*CELL);ctx.textAlign='center';ctx.textBaseline='bottom';for(let c=0;c<=cols;c+=10)if(c>0)ctx.fillText(c,M+c*CELL,M-3);}
+  const cx=M+Math.floor(cols/2)*CELL,cy=M+Math.floor(rows/2)*CELL;
+  ctx.strokeStyle='rgba(212,96,122,.55)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(cx,M);ctx.lineTo(cx,M+rows*CELL);ctx.stroke();ctx.beginPath();ctx.moveTo(M,cy);ctx.lineTo(M+cols*CELL,cy);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(212,96,122,.7)';ctx.font='bold 8px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('▶',M+3,cy);ctx.fillText('◀',M+cols*CELL-3,cy);ctx.fillText('▼',cx,M+3);ctx.fillText('▲',cx,M+rows*CELL-3);
+
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('canvasInner').style.display='block';
+
+  // Quality badge
+  const badge=document.getElementById('qualityBadge');
+  badge.className='quality-badge '+(mode==='preview'?'preview-mode':'full-mode');
+  badge.textContent=mode==='preview'?'✦ Quick preview':'✦ Full quality';
+}
+
+// ═══ PALETTE UI ══════════════════════════════════════════════════════════════
+function renderPal(){
+  const c=document.getElementById('colorPal');c.innerHTML='';
+  AP.forEach((item,i)=>{const sw=document.createElement('div');sw.className='sw';sw.style.background=item.dmc.hex;sw.style.border='2px solid transparent';const[r,g,b]=item.rgb;if(r>240&&g>240&&b>240)sw.style.outline='.5px solid #e5c8d2';sw.title=`DMC ${item.dmc.code} — ${item.dmc.name}\n${item.count.toLocaleString()} stitches · ${item.symbol}`;sw.onclick=()=>selSw(i);c.appendChild(sw);});
+  selI=null;document.getElementById('swapPanel').classList.remove('open');
+  document.getElementById('palSec').style.display='';
+}
+function selSw(i){selI=i;document.querySelectorAll('.sw').forEach((s,j)=>s.style.border=j===i?'2px solid #2D1F25':'2px solid transparent');document.getElementById('swapLbl').textContent=`Replace DMC ${AP[i].dmc.code} — ${AP[i].dmc.name}:`;document.getElementById('swapPanel').classList.add('open');document.getElementById('dmcSearch').value='';renderDG('');document.getElementById('dmcSearch').focus();}
+function closeSwap(){selI=null;document.querySelectorAll('.sw').forEach(s=>s.style.border='2px solid transparent');document.getElementById('swapPanel').classList.remove('open');}
+document.getElementById('dmcSearch').addEventListener('input',e=>renderDG(e.target.value));
+function renderDG(q){const g=document.getElementById('dmcGrid');g.innerHTML='';const lq=q.toLowerCase();const f=q?DMC.filter(d=>d.code.includes(lq)||d.name.toLowerCase().includes(lq)):DMC;for(const d of f.slice(0,120)){const el=document.createElement('div');el.className='dd';el.style.background=d.hex;const lum=(d.rgb[0]*299+d.rgb[1]*587+d.rgb[2]*114)/1000;if(lum>245)el.style.outline='.5px solid #e5c8d2';el.title=`DMC ${d.code} — ${d.name}`;el.onclick=()=>swapCol(d);g.appendChild(el);}}
+function swapCol(nd){if(selI===null)return;AP[selI].dmc=nd;AP[selI].rgb=nd.rgb;AP[selI].lab=nd.lab;PD.AP=AP;drawCanvas(document.getElementById('qualityBadge').classList.contains('preview-mode')?'preview':'full');renderPal();renderTL();}
+
+// ═══ STATS ═══════════════════════════════════════════════════════════════════
+function updStats(cs,isPreview){
+  const{cols,rows}=PD;
+  const inW=(cols/curAida).toFixed(1),inH=(rows/curAida).toFixed(1);
+  const pages=Math.ceil(+inW/LW)*Math.ceil(+inH/LH);
+  document.getElementById('statsStrip').classList.add('show');
+  document.getElementById('stStitches').textContent=(cols*rows).toLocaleString();
+  if(isPreview){document.getElementById('stColors').textContent=AP.length+' (preview)';}
+  else{const cl=cs<=2?'cbg':cs<=8?'cby':'cbr';const lb=cs<=2?'Low confetti':cs<=8?'Some confetti':'High confetti';document.getElementById('stColors').innerHTML=`${AP.length} <span class="cb ${cl}">${lb} ${cs}%</span>`;}
+  document.getElementById('stSize').innerHTML=`${inW}″ × ${inH}″`;
+  document.getElementById('stPages').textContent=pages;
+}
+function renderTL(){
+  document.getElementById('threadSec').style.display='';document.getElementById('threadDiv').style.display='';
+  const list=document.getElementById('threadList');list.innerHTML='';
+  [...AP].sort((a,b)=>b.count-a.count).forEach(item=>{
+    if(!item.count)return;const sk=Math.max(1,Math.ceil(item.count/200));
+    const row=document.createElement('div');row.className='trow';
+    const dot=document.createElement('div');dot.className='tdot';dot.style.background=item.dmc.hex;
+    const sym=document.createElement('div');sym.className='tsym';sym.textContent=item.symbol;
+    const info=document.createElement('div');info.className='tinfo';info.innerHTML=`<div class="tname">${item.dmc.name}</div><div class="tcode">DMC ${item.dmc.code}</div>`;
+    const right=document.createElement('div');right.className='tright';right.innerHTML=`<div class="tcount">${item.count.toLocaleString()} · ~${sk}sk</div><a class="tlink" href="https://canada.michaels.com/search?q=DMC+${encodeURIComponent(item.dmc.code)}" target="_blank">Michaels</a>`;
+    row.append(dot,sym,info,right);list.appendChild(row);
+  });
+}
+
+// ═══ FILE UPLOAD ══════════════════════════════════════════════════════════════
+document.getElementById('fi').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
+document.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dropOverlay').classList.add('show');});
+document.addEventListener('dragleave',e=>{if(!e.relatedTarget&&!e.fromElement)document.getElementById('dropOverlay').classList.remove('show');});
+document.addEventListener('drop',e=>{e.preventDefault();document.getElementById('dropOverlay').classList.remove('show');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+
+function handleFile(f){
+  const nm=f.name.toLowerCase();
+  if(nm.endsWith('.heic')||nm.endsWith('.heif')){alert('HEIC format not supported in browsers.\n\nOn iPhone: Settings → Camera → Formats → Most Compatible.');return;}
+  const raw=new FileReader();
+  raw.onload=ev=>{
+    exifO=readExif(ev.target.result);
+    const url=new FileReader();
+    url.onload=ev2=>{
+      const img=new Image();
+      img.onload=()=>{
+        srcImg=img;
+        const sw=exifO>=5&&exifO<=8;
+        const lW=sw?img.naturalHeight:img.naturalWidth,lH=sw?img.naturalWidth:img.naturalHeight;
+        imgAspect=lW/lH;updInfo();
+        const mp=((img.naturalWidth*img.naturalHeight)/1e6).toFixed(1);
+        document.getElementById('imgPillText').textContent=`${img.naturalWidth}×${img.naturalHeight}px · ${mp}MP`;
+        document.getElementById('imgPill').classList.add('show');
+        const minD=Math.min(lW,lH);const wp=document.getElementById('warnPill');const wt=document.getElementById('warnText');
+        if(minD<350){wt.textContent=`Low resolution (${lW}×${lH}px) — pattern may lack detail.`;wp.classList.add('show');}else wp.classList.remove('show');
+        // Auto-run live preview if enabled
+        if(livePreview)scheduleLivePreview();
+        // If not, still run a quick first preview automatically
+        else{livePreview=true;document.getElementById('previewBtn').classList.add('active');scheduleLivePreview();}
+      };
+      img.onerror=()=>alert('Could not load this image. Please try a JPG, PNG, or WebP.');
+      img.src=ev2.target.result;
+    };
+    url.readAsDataURL(f);
+  };
+  raw.readAsArrayBuffer(f);
+}
+
+// ═══ PRINT PDF ════════════════════════════════════════════════════════════════
+function printPDF(){
+  if(!PD)return;
+  const{cols,rows}=PD;const CELL=6,OV=10;
+  const PW=Math.floor(8.5*.78*96/CELL),PH=Math.floor(11*.72*96/CELL);
+  const inW=(cols/curAida).toFixed(1),inH=(rows/curAida).toFixed(1);
+  const sorted=[...AP].filter(x=>x.count>0).sort((a,b)=>b.count-a.count);
+  const sk=it=>Math.max(1,Math.ceil(it.count/200));
+  const leg=`<table style="width:100%;border-collapse:collapse;font-size:9px"><tbody>`+sorted.map(it=>`<tr style="border-bottom:.5px solid #f5e0e5"><td style="padding:2px 4px;width:16px"><span style="display:inline-block;width:12px;height:12px;background:${it.dmc.hex};border:.5px solid #e0c0c8;border-radius:2px;vertical-align:middle"></span></td><td style="width:18px;text-align:center;font-weight:bold;font-family:monospace;padding:2px">${it.symbol}</td><td style="padding:2px 4px">DMC ${it.dmc.code} — ${it.dmc.name}</td><td style="padding:2px 4px;text-align:right;color:#7A5C65">${it.count.toLocaleString()} · ~${sk(it)} skein${sk(it)>1?'s':''}</td></tr>`).join('')+`</tbody></table>`;
+  function dSec(sc,sr,ec,er){
+    const SW=ec-sc,SH=er-sr,M=18;const oc=document.createElement('canvas');oc.width=M+SW*CELL;oc.height=M+SH*CELL;const ctx=oc.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,oc.width,oc.height);
+    for(let r=0;r<SH;r++)for(let c=0;c<SW;c++){const ci=PD.grid[(sr+r)*cols+(sc+c)];const it=AP[ci]??AP[0];const px=M+c*CELL,py=M+r*CELL;ctx.fillStyle=it.dmc.hex;ctx.fillRect(px,py,CELL,CELL);const[dr,dg,db]=it.rgb;ctx.fillStyle=(dr*299+dg*587+db*114)/1000>140?'rgba(0,0,0,.68)':'rgba(255,255,255,.88)';ctx.font=`${CELL-1}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(it.symbol,px+CELL/2,py+CELL/2);}
+    ctx.strokeStyle='rgba(0,0,0,.1)';ctx.lineWidth=.5;for(let c=0;c<=SW;c++){ctx.beginPath();ctx.moveTo(M+c*CELL,M);ctx.lineTo(M+c*CELL,M+SH*CELL);ctx.stroke();}for(let r=0;r<=SH;r++){ctx.beginPath();ctx.moveTo(M,M+r*CELL);ctx.lineTo(M+SW*CELL,M+r*CELL);ctx.stroke();}
+    ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=1;for(let c=0;c<=SW;c+=10){ctx.beginPath();ctx.moveTo(M+c*CELL,M);ctx.lineTo(M+c*CELL,M+SH*CELL);ctx.stroke();}for(let r=0;r<=SH;r+=10){ctx.beginPath();ctx.moveTo(M,M+r*CELL);ctx.lineTo(M+SW*CELL,M+r*CELL);ctx.stroke();}
+    ctx.fillStyle='#b8929c';ctx.font='7px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';for(let r=0;r<=SH;r+=10)if(sr+r>0)ctx.fillText(sr+r,M-2,M+r*CELL);ctx.textAlign='center';ctx.textBaseline='bottom';for(let c=0;c<=SW;c+=10)if(sc+c>0)ctx.fillText(sc+c,M+c*CELL,M-2);
+    const cxG=Math.floor(cols/2),cyG=Math.floor(rows/2);
+    if(cxG>=sc&&cxG<ec&&cyG>=sr&&cyG<er){const ccx=M+(cxG-sc)*CELL,ccy=M+(cyG-sr)*CELL;ctx.strokeStyle='rgba(212,96,122,.5)';ctx.lineWidth=1;ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(ccx,M);ctx.lineTo(ccx,M+SH*CELL);ctx.stroke();ctx.beginPath();ctx.moveTo(M,ccy);ctx.lineTo(M+SW*CELL,ccy);ctx.stroke();ctx.setLineDash([]);}
+    if(ec<cols){ctx.fillStyle='rgba(250,204,21,.18)';ctx.fillRect(M+(SW-OV)*CELL,M,OV*CELL,SH*CELL);}if(er<rows){ctx.fillStyle='rgba(250,204,21,.18)';ctx.fillRect(M,M+(SH-OV)*CELL,SW*CELL,OV*CELL);}
+    return oc.toDataURL('image/png');
+  }
+  const tiles=[];for(let r=0;r<rows;r+=PH-OV)for(let c=0;c<cols;c+=PW-OV)tiles.push({r,c,er:Math.min(rows,r+PH),ec:Math.min(cols,c+PW)});
+  const pgW=Math.max(1,Math.ceil(cols/(PW-OV)));
+  let lo=`<div style="display:inline-grid;grid-template-columns:repeat(${pgW},auto);gap:2px;margin-bottom:10px">`;tiles.forEach((t,i)=>{lo+=`<div style="padding:2px 8px;background:#fdf0f3;border:.5px solid #e8c0cc;font-size:8px;text-align:center;border-radius:3px;color:#7A5C65">P${i+1}</div>`;});lo+='</div>';
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Stitch Pattern</title><style>body{font-family:sans-serif;margin:0;color:#2D1F25}.page{width:8.5in;padding:.44in;box-sizing:border-box;page-break-after:always}@media print{.np{display:none}@page{size:letter;margin:.35in}}</style></head><body>
+  <div class="page np"><div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px"><strong style="font-size:15px;font-family:Georgia,serif;font-style:italic;color:#D4607A">Stitch Pattern</strong><span style="font-size:10px;color:#7A5C65">${cols}×${rows} stitches · ${inW}″×${inH}″ · ${curAida}-ct Aida · ${AP.length} colors · ${tiles.length} page${tiles.length>1?'s':''}</span></div><p style="font-size:9px;color:#b8929c;margin-bottom:10px">Pages overlap by 10 stitches (yellow zone). Align yellow edges between adjacent pages.</p><b style="font-size:8px;color:#D4607A;letter-spacing:.06em;text-transform:uppercase">Page layout</b><div style="margin-top:5px">${lo}</div><b style="font-size:8px;color:#D4607A;letter-spacing:.06em;text-transform:uppercase">Color key</b><div style="margin-top:5px">${leg}</div><div style="margin-top:16px"><button onclick="window.print()" style="padding:9px 22px;font-size:13px;cursor:pointer;background:#D4607A;color:#fff;border:none;border-radius:7px;font-weight:600">Print / Save as PDF</button></div></div>`+tiles.map((t,i)=>`<div class="page"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px"><strong style="font-size:13px;font-family:Georgia,serif;font-style:italic;color:#D4607A">Page ${i+1} of ${tiles.length}</strong><span style="font-size:9px;color:#7A5C65">Col ${t.c+1}–${t.ec} · Row ${t.r+1}–${t.er} · ${curAida}-ct</span></div>${i===0?'<p style="font-size:8px;color:#b8929c;margin-bottom:5px;line-height:1.4">Red dashed line = center, start stitching here. Yellow tinted edges = 10-stitch overlap — align with the next page.</p>':''}<img src="${dSec(t.c,t.r,t.ec,t.er)}" style="max-width:100%;display:block;image-rendering:pixelated;border:.5px solid #f0d0d8"><div style="margin-top:7px;border-top:.5px solid #f5e0e5;padding-top:7px"><b style="font-size:8px;color:#D4607A;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">Color key</b>${leg}</div></div>`).join('')+`</body></html>`);win.document.close();
+}
+</script>
+</body>
+</html>
