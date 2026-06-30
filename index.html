@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Stitch — Cross Stitch Pattern Maker</title>
 <style>
 /* ── Design tokens ─────────────────────────────────── */
@@ -33,6 +36,11 @@ body{
   color:var(--ink);
   font-size:13px;
   line-height:1.5;
+  height:100vh;
+  height:-webkit-fill-available;
+  height:var(--app-height,100vh);
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
 }
 
 /* ── Topbar ────────────────────────────────────────── */
@@ -101,7 +109,17 @@ body{
 /* Width slider */
 .size-ctrl{display:flex;align-items:center;gap:9px;flex:1;max-width:380px}
 .size-ctrl label{font-size:11px;color:var(--ink-3);white-space:nowrap}
-.size-ctrl input[type=range]{flex:1;accent-color:var(--rose);cursor:pointer}
+.size-ctrl input[type=range]{
+  flex:1;accent-color:var(--rose);cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  height:4px;border-radius:2px;background:var(--rose-2);
+  touch-action:none;
+}
+.size-ctrl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--rose);cursor:pointer;border:2px solid #fff;
+  box-shadow:0 1px 3px rgba(180,80,100,.4);
+}
 .stitch-info{
   font-size:11px;font-weight:500;color:var(--ink);
   white-space:nowrap;min-width:160px;
@@ -167,9 +185,10 @@ body{
 .settings-btn:hover{background:var(--rose-pale)}
 .settings-btn.active{background:var(--rose-pale);border-color:var(--rose-l);color:var(--rose)}
 .settings-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;flex-shrink:0}
+.btn-txt{display:inline}
 
 /* ── Layout ─────────────────────────────────────────── */
-.layout{display:flex;height:calc(100vh - 54px);overflow:hidden}
+.layout{display:flex;height:calc(var(--app-height,100vh) - 54px);overflow:hidden}
 
 /* ── Canvas area ─────────────────────────────────────── */
 .canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
@@ -185,6 +204,7 @@ body{
   position:absolute;top:12px;right:12px;z-index:5;
   display:none;
   padding:4px 10px;border-radius:20px;font-size:10px;font-weight:500;
+  -webkit-backdrop-filter:blur(4px);
   backdrop-filter:blur(4px);
 }
 .quality-badge.preview-mode{
@@ -292,7 +312,17 @@ canvas#patternCanvas{
 .sl-lbl{font-size:11px;color:var(--ink-2);display:flex;justify-content:space-between}
 .sl-lbl .hint{font-size:10px;color:var(--ink-3)}
 .sl-row{display:flex;align-items:center;gap:8px}
-.sl-row input[type=range]{flex:1;accent-color:var(--rose);cursor:pointer}
+.sl-row input[type=range]{
+  flex:1;accent-color:var(--rose);cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  height:4px;border-radius:2px;background:var(--rose-2);
+  touch-action:none;
+}
+.sl-row input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--rose);cursor:pointer;border:2px solid #fff;
+  box-shadow:0 1px 3px rgba(180,80,100,.4);
+}
 .sl-val{font-size:11px;font-weight:500;min-width:28px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
 /* Palette */
 .pal{display:flex;flex-wrap:wrap;gap:4px}
@@ -364,6 +394,85 @@ canvas#patternCanvas{
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--rose-2);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
+/* ── Responsive: iPad / tablet (≤1024px) ─────────────── */
+@media (max-width:1024px){
+  .topbar{
+    flex-wrap:wrap;
+    height:auto;
+    min-height:54px;
+    padding:8px 12px;
+    row-gap:8px;
+  }
+  .size-ctrl{order:5;flex:1 1 100%;max-width:100%;margin-top:2px}
+  .tsep{display:none}
+  .drawer.open{
+    position:fixed;top:54px;right:0;bottom:0;
+    width:300px;max-width:80vw;
+    z-index:50;
+    box-shadow:-8px 0 24px rgba(180,80,100,.18);
+  }
+}
+
+/* ── Responsive: mobile (≤640px) ─────────────────────── */
+@media (max-width:640px){
+  body{font-size:14px}
+  .topbar{
+    padding:8px 10px;
+    gap:7px;
+  }
+  .logo-name{font-size:16px}
+  .logo-sub{display:none}
+  .upload-btn{padding:9px 12px;font-size:13px}
+  .upload-btn span.btn-txt{display:none}
+  .img-pill,.warn-pill{font-size:10px;padding:4px 8px}
+  .size-ctrl{gap:7px}
+  .size-ctrl label{display:none}
+  .stitch-info{min-width:0;font-size:10px}
+  .stitch-info .sub{display:none}
+  .pages-badge{font-size:9px;padding:2px 6px}
+  .preview-btn,.settings-btn,.print-btn{padding:8px 10px;font-size:0}
+  .preview-btn svg,.settings-btn svg,.print-btn svg{width:16px;height:16px;margin:0}
+  .gen-btn{padding:9px 14px;font-size:13px}
+  .gen-btn span.btn-txt{display:inline}
+
+  .layout{height:calc(var(--app-height,100vh) - var(--topbar-height,70px))}
+  .canvas-scroll{padding:14px}
+  .empty-title{font-size:19px}
+  .empty-sub{font-size:12px;max-width:220px}
+  .hoop-wrap{width:120px;height:120px;margin-bottom:20px}
+
+  .stats-strip{flex-wrap:wrap}
+  .stat-item{flex:1 1 50%;border-right:none;border-bottom:0.5px solid var(--border);padding:8px}
+  .stat-item:nth-child(2n){border-right:none}
+
+  .drawer.open{
+    position:fixed;inset:0;top:auto;
+    width:100%;max-width:100%;
+    height:85vh;
+    border-radius:16px 16px 0 0;
+    box-shadow:0 -8px 30px rgba(180,80,100,.22);
+    z-index:60;
+  }
+  .drawer-body{padding:16px 16px 28px}
+
+  /* Larger touch targets */
+  .ap{padding:6px 12px;font-size:12px}
+  .sw,.dd{width:28px;height:28px}
+  .sl-row input[type=range]{height:28px}
+  .swap-cancel,.tlink{padding:5px 10px;font-size:11px}
+}
+
+/* Drawer scrim for mobile/tablet overlay mode */
+.drawer-scrim{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(45,31,37,0.25);
+  z-index:45;
+}
+.drawer-scrim.show{display:block}
+@media (min-width:1025px){
+  .drawer-scrim{display:none !important}
+}
 </style>
 </head>
 <body>
@@ -400,7 +509,7 @@ canvas#patternCanvas{
 
   <button class="upload-btn" onclick="document.getElementById('fi').click()">
     <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-    Upload photo
+    <span class="btn-txt">Upload photo</span>
   </button>
   <input type="file" id="fi" accept="image/*,.heic,.heif" style="display:none">
 
@@ -428,25 +537,28 @@ canvas#patternCanvas{
   <!-- Live preview toggle -->
   <button class="preview-btn" id="previewBtn" onclick="toggleLivePreview()">
     <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-    Live preview
+    <span class="btn-txt">Live preview</span>
   </button>
 
   <!-- Full-quality generate -->
   <button class="gen-btn" id="genBtn" onclick="generate()">
     <svg viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-    Full quality
+    <span class="btn-txt">Full quality</span>
   </button>
 
   <button class="print-btn" id="printBtn" onclick="printPDF()">
     <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-    Print PDF
+    <span class="btn-txt">Print PDF</span>
   </button>
 
   <button class="settings-btn" id="settingsBtn" onclick="toggleSettings()">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-    Settings
+    <span class="btn-txt">Settings</span>
   </button>
 </div>
+
+<!-- Scrim for mobile/tablet drawer overlay -->
+<div class="drawer-scrim" id="drawerScrim" onclick="toggleSettings()"></div>
 
 <!-- Layout -->
 <div class="layout">
@@ -836,7 +948,7 @@ function setAida(ct){
   document.getElementById('aidaNote').innerHTML=`<b>${ct}-ct Aida</b> — ${AIDA_TXT[ct]}. Affects fabric/print size only, not pattern detail.`;
   updInfo();
 }
-function toggleSettings(){drawerOpen=!drawerOpen;document.getElementById('drawer').classList.toggle('open',drawerOpen);document.getElementById('settingsBtn').classList.toggle('active',drawerOpen);}
+function toggleSettings(){drawerOpen=!drawerOpen;document.getElementById('drawer').classList.toggle('open',drawerOpen);document.getElementById('settingsBtn').classList.toggle('active',drawerOpen);document.getElementById('drawerScrim').classList.toggle('show',drawerOpen);}
 function setP(p,l){document.getElementById('progFill').style.width=p+'%';document.getElementById('progLabel').textContent=l||'';}
 
 // ═══ LIVE PREVIEW ═══════════════════════════════════════════════════════════
@@ -1074,6 +1186,7 @@ function handleFile(f){
         document.getElementById('imgPill').classList.add('show');
         const minD=Math.min(lW,lH);const wp=document.getElementById('warnPill');const wt=document.getElementById('warnText');
         if(minD<350){wt.textContent=`Low resolution (${lW}×${lH}px) — pattern may lack detail.`;wp.classList.add('show');}else wp.classList.remove('show');
+        setTimeout(setAppHeight,50); // topbar height may have changed (pill/warning now visible)
         // Auto-run live preview if enabled
         if(livePreview)scheduleLivePreview();
         // If not, still run a quick first preview automatically
@@ -1114,6 +1227,34 @@ function printPDF(){
   win.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Stitch Pattern</title><style>body{font-family:sans-serif;margin:0;color:#2D1F25}.page{width:8.5in;padding:.44in;box-sizing:border-box;page-break-after:always}@media print{.np{display:none}@page{size:letter;margin:.35in}}</style></head><body>
   <div class="page np"><div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px"><strong style="font-size:15px;font-family:Georgia,serif;font-style:italic;color:#D4607A">Stitch Pattern</strong><span style="font-size:10px;color:#7A5C65">${cols}×${rows} stitches · ${inW}″×${inH}″ · ${curAida}-ct Aida · ${AP.length} colors · ${tiles.length} page${tiles.length>1?'s':''}</span></div><p style="font-size:9px;color:#b8929c;margin-bottom:10px">Pages overlap by 10 stitches (yellow zone). Align yellow edges between adjacent pages.</p><b style="font-size:8px;color:#D4607A;letter-spacing:.06em;text-transform:uppercase">Page layout</b><div style="margin-top:5px">${lo}</div><b style="font-size:8px;color:#D4607A;letter-spacing:.06em;text-transform:uppercase">Color key</b><div style="margin-top:5px">${leg}</div><div style="margin-top:16px"><button onclick="window.print()" style="padding:9px 22px;font-size:13px;cursor:pointer;background:#D4607A;color:#fff;border:none;border-radius:7px;font-weight:600">Print / Save as PDF</button></div></div>`+tiles.map((t,i)=>`<div class="page"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px"><strong style="font-size:13px;font-family:Georgia,serif;font-style:italic;color:#D4607A">Page ${i+1} of ${tiles.length}</strong><span style="font-size:9px;color:#7A5C65">Col ${t.c+1}–${t.ec} · Row ${t.r+1}–${t.er} · ${curAida}-ct</span></div>${i===0?'<p style="font-size:8px;color:#b8929c;margin-bottom:5px;line-height:1.4">Red dashed line = center, start stitching here. Yellow tinted edges = 10-stitch overlap — align with the next page.</p>':''}<img src="${dSec(t.c,t.r,t.ec,t.er)}" style="max-width:100%;display:block;image-rendering:pixelated;border:.5px solid #f0d0d8"><div style="margin-top:7px;border-top:.5px solid #f5e0e5;padding-top:7px"><b style="font-size:8px;color:#D4607A;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">Color key</b>${leg}</div></div>`).join('')+`</body></html>`);win.document.close();
 }
+
+// ═══ RESPONSIVE / SAFARI FIXES ════════════════════════════════════════════════
+// iOS Safari's 100vh doesn't account for the dynamic address bar / toolbar,
+// causing layout overflow or a gap at the bottom. We measure the real
+// innerHeight via JS and expose it as a CSS variable instead.
+function setAppHeight(){
+  document.documentElement.style.setProperty('--app-height', window.innerHeight+'px');
+  const tb=document.querySelector('.topbar');
+  if(tb) document.documentElement.style.setProperty('--topbar-height', tb.offsetHeight+'px');
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', ()=>setTimeout(setAppHeight,100));
+// iOS Safari fires visualViewport resize separately from window resize
+// when the keyboard or toolbar appears/disappears
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', setAppHeight);
+}
+
+// Close the settings drawer with Escape (helps on iPad with a keyboard attached)
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && drawerOpen) toggleSettings();
+});
+
+// Prevent iOS Safari's "double-tap to zoom" from interfering with slider drags
+document.querySelectorAll('input[type=range]').forEach(el=>{
+  el.addEventListener('touchstart', e=>e.stopPropagation(), {passive:true});
+});
 </script>
 </body>
 </html>
